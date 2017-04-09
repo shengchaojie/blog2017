@@ -1,16 +1,27 @@
 package com.scj.web.interceptor;
 
+import com.scj.common.CommonConstants;
+import com.scj.common.utils.CommonUtil;
+import com.scj.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  * Created by shengcj on 2016/7/29.
  */
+@Component
 public class LoginStatusInterceptor extends HandlerInterceptorAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoginStatusInterceptor.class);
 
-    /*@Resource
+    @Resource
     private UserService userService;
 
     @Override
@@ -53,12 +64,12 @@ public class LoginStatusInterceptor extends HandlerInterceptorAdapter {
             int hash = Integer.parseInt(params[2]);
             String password = userService.getUserByUsername(username).getPassword();
 
-            if (hash == CommonUtil.generateUIDHash(username, password, expireTime, BlogContext.getSalt())) {
+            if (hash == CommonUtil.generateUIDHash(username, password, expireTime,"scjzuiniubi")) {
                 return true;
             }
         }
 
         return false;
-    }*/
+    }
 
 }
