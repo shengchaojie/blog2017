@@ -1,11 +1,14 @@
 package com.scj.web.interceptor;
 
 import com.scj.common.CommonConstants;
+import com.scj.common.exception.BusinessException;
+import com.scj.common.exception.StatusCode;
 import com.scj.common.utils.CommonUtil;
 import com.scj.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.annotation.Resource;
@@ -18,6 +21,7 @@ import javax.servlet.http.HttpSession;
  * Created by shengcj on 2016/7/29.
  */
 @Component
+@EnableWebMvc
 public class LoginStatusInterceptor extends HandlerInterceptorAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoginStatusInterceptor.class);
 
@@ -28,8 +32,11 @@ public class LoginStatusInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         HttpSession session = request.getSession();
-        String uid = null;
-        if ((uid = session.getAttribute(CommonConstants.USER_ID_ENCODE).toString()) != null&&isUIDCorrect(uid)) {
+        if(session.getAttribute(CommonConstants.USER_ID_ENCODE)==null){
+            throw new BusinessException(StatusCode.USER_NOT_LOGIN);
+        }
+        String uid = session.getAttribute(CommonConstants.USER_ID_ENCODE).toString();
+        if (isUIDCorrect(uid)) {
             return true;
         }
         LOGGER.debug("登录拦截时,session信息不存在");

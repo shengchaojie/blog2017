@@ -15,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @SpringBootApplication
 @MapperScan(basePackages = "com.scj.dal.mapper")
 @ComponentScan(basePackages = "com.scj.service")
+@ComponentScan(basePackages = "com.scj.web")
 public class Application {
 
     public static void main(String[] args) {
