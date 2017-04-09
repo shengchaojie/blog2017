@@ -10,7 +10,6 @@ public class UserVO implements Serializable{
     private int id;
     private String username;
     private String password;
-    private String nickname;
 
     /*@OneToMany(mappedBy = "user",fetch = FetchType.LAZY,cascade = {CascadeType.ALL})
     private List<Talk> talks;*/
@@ -41,14 +40,6 @@ public class UserVO implements Serializable{
         this.password = password;
     }
 
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
    /* public List<Talk> getTalks() {
         return talks;
     }
@@ -65,14 +56,14 @@ public class UserVO implements Serializable{
         this.userInfoVO = userInfoVO;
     }
 
+
     @Override
     public String toString() {
         return "UserVO{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
-                ", nickname='" + nickname + '\'' +
-
+                ", userInfoVO=" + userInfoVO +
                 '}';
     }
 }

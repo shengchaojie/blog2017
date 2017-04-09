@@ -19,7 +19,4 @@ public class HelloController {
         return "HelloWorld";
     }
 
-    public static void main(String[] args) {
-        SpringApplication.run(new Object[]{HelloController.class,UserController.class},args);
-    }
 }

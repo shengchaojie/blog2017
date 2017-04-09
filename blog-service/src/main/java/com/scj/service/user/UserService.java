@@ -16,5 +16,7 @@ public interface UserService {
 
     UserVO getUserByUsername(String username);
 
-    UserVO getUserById(Integer integer);
+    UserVO getUserById(Long integer);
+
+    boolean changePassword(Long id,String passwordBefore,String passwordAfter);
 }

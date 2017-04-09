@@ -8,24 +8,15 @@ import java.util.Date;
  */
 public class UserInfoVO implements Serializable{
 
-    private Integer id;
-
     private Integer age;
 
     private Date birth;
 
     private Integer gender;
 
-    private UserVO userVO;
+    private long userId;
 
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    private String nickName;
 
     public Integer getAge() {
         return age;
@@ -51,11 +42,30 @@ public class UserInfoVO implements Serializable{
         this.gender = gender;
     }
 
-    public UserVO getUserVO() {
-        return userVO;
+    public long getUserId() {
+        return userId;
     }
 
-    public void setUserVO(UserVO userVO) {
-        this.userVO = userVO;
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    @Override
+    public String toString() {
+        return "UserInfoVO{" +
+                "age=" + age +
+                ", birth=" + birth +
+                ", gender=" + gender +
+                ", userId=" + userId +
+                ", nickName='" + nickName + '\'' +
+                '}';
     }
 }
