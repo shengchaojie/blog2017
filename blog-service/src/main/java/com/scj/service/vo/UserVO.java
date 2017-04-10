@@ -1,5 +1,8 @@
 package com.scj.service.vo;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
+import javax.persistence.Transient;
 import java.io.Serializable;
 
 /**
@@ -8,7 +11,10 @@ import java.io.Serializable;
 
 public class UserVO implements Serializable{
     private int id;
+
     private String username;
+
+    @Transient
     private String password;
 
     /*@OneToMany(mappedBy = "user",fetch = FetchType.LAZY,cascade = {CascadeType.ALL})
