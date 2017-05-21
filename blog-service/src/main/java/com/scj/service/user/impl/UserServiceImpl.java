@@ -12,9 +12,14 @@ import com.scj.service.vo.UserInfoVO;
 import com.scj.service.vo.UserVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.AssertFalse;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/4/9 0009.
@@ -30,7 +35,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional
-    public boolean register(UserVO userVO) {
+    public boolean  register(UserVO userVO) {
         if(isUserExisted(userVO.getUsername())){
             throw new BusinessException(StatusCode.USER_REGISTERED_ALREADY);
         }
@@ -66,6 +71,16 @@ public class UserServiceImpl implements UserService{
 
         UserVO userVO =new UserVO();
         BeanUtils.copyProperties(userRO,userVO);
+
+        Example example =new Example(UserInfoRo.class);
+        example.createCriteria().andEqualTo("userId",userRO.getId());
+        List<UserInfoRo> userInfoRo =userInfoMapper.selectByExample(example);
+        if(!CollectionUtils.isEmpty(userInfoRo)){
+            UserInfoVO userInfoVO =new UserInfoVO();
+            BeanUtils.copyProperties(userInfoRo.get(0),userInfoVO);
+            userVO.setUserInfoVO(userInfoVO);
+        }
+
         return userVO;
     }
 

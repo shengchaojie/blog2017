@@ -4,6 +4,7 @@ import com.scj.common.CommonConstants;
 import com.scj.common.ResponseResult;
 import com.scj.common.exception.StatusCode;
 import com.scj.service.user.UserService;
+import com.scj.service.vo.UserLoginVO;
 import com.scj.service.vo.UserVO;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -33,9 +34,12 @@ public class UserController {
     @Resource
     private UserService userService;
 
-    @RequestMapping(value = "/login",method = RequestMethod.GET)
+    @RequestMapping(value = "/login",method = RequestMethod.POST)
     @ResponseBody
-    public ResponseResult<UserVO> login(@RequestParam("username")String username, @RequestParam("password")String password, HttpSession session, HttpServletRequest request, HttpServletResponse response){
+    public ResponseResult<UserVO> login(@RequestBody UserLoginVO userLoginVO, HttpSession session, HttpServletRequest request, HttpServletResponse response){
+
+        String username =userLoginVO.getUsername();
+        String password =userLoginVO.getPassword();
 
         UserVO user =userService.login(username,password);
         if(user!=null){
@@ -60,7 +64,7 @@ public class UserController {
             //session.setAttribute(CommonConstants.USER_NAME,user.getNickname());
         }
 
-        return new ResponseResult<>(StatusCode.OK,userService.login(username,password));
+        return new ResponseResult<>(StatusCode.OK,user);
     }
 
     @RequestMapping(value = "/register",method = RequestMethod.POST)
