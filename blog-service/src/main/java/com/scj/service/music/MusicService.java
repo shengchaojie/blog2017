@@ -11,4 +11,6 @@ public interface MusicService {
      * 这个方法提供可以多线程爬
      */
     void crawlSingerAlbum();
+
+    void crawlSongs();
 }

@@ -59,11 +59,11 @@ public class SongRO extends BaseRO{
         this.imgUrl = imgUrl;
     }
 
-    public long getCommentCount() {
+    public Long getCommentCount() {
         return commentCount;
     }
 
-    public void setCommentCount(long commentCount) {
+    public void setCommentCount(Long commentCount) {
         this.commentCount = commentCount;
     }
 

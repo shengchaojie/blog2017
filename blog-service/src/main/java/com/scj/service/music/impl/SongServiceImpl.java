@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.scj.dal.mapper.music.SongMapper;
 import com.scj.dal.ro.music.SongRO;
 import com.scj.service.music.SongService;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2017/5/21 0021.
  */
-@Resource
+@Service
 public class SongServiceImpl implements SongService{
 
     @Resource
@@ -31,5 +32,10 @@ public class SongServiceImpl implements SongService{
     @Override
     public int add(SongRO songRO) {
         return songMapper.insert(songRO);
+    }
+
+    @Override
+    public int batchAdd(List<SongRO> songROList) {
+        return songMapper.insertListWithId(songROList);
     }
 }

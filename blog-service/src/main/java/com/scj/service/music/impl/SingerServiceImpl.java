@@ -40,6 +40,11 @@ public class SingerServiceImpl implements SingerService{
     }
 
     @Override
+    public int batchAdd(List<SingerRO> singerROS) {
+        return singerMapper.insertListWithId(singerROS);
+    }
+
+    @Override
     public int count() {
         return singerMapper.selectCount(new SingerRO());
     }

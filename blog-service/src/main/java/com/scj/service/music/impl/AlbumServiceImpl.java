@@ -38,4 +38,9 @@ public class AlbumServiceImpl implements AlbumService{
     public AlbumRO findById(Long id) {
         return albumMapper.selectByPrimaryKey(id);
     }
+
+    @Override
+    public long count() {
+        return albumMapper.selectCount(new AlbumRO());
+    }
 }

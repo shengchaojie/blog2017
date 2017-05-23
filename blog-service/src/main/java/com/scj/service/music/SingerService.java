@@ -17,5 +17,7 @@ public interface SingerService {
 
     int add(SingerRO singerRO);
 
+    int batchAdd(List<SingerRO> singerROS);
+
     int count();
 }

@@ -15,4 +15,6 @@ public interface AlbumService {
     List<AlbumRO> pageAll(int page,int pageSize);
 
     AlbumRO findById(Long id);
+
+    long count();
 }

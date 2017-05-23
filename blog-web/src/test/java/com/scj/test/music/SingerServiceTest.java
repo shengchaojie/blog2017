@@ -2,9 +2,12 @@ package com.scj.test.music;
 
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.music.SingerService;
 import com.scj.web.Application;
+import org.apache.commons.lang3.CharSet;
+import org.apache.commons.lang3.CharSetUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,16 +37,18 @@ public class SingerServiceTest {
     @Test
     @Rollback(false)
     public void testAdd(){
-        for (int i =1;i<100;i++){
+        //System.out.println(System.getProperty("file.encoding"));
+
+        //for (int i =1;i<100;i++){
             SingerRO singerRO =new SingerRO();
-            singerRO.setId(123456L+i);
-            singerRO.setSingerName("盛超杰"+i);
+            singerRO.setId(1234568L);
+            singerRO.setSingerName("盛超杰");
             singerRO.setFirstLetter("S");
-            singerRO.setImgUrl("testurl");
+            singerRO.setImgUrl(null);
             singerRO.setCrawlTime(new Date());
             singerRO.setSingerUrl("singerurl");
-            singerService.add(singerRO);
-        }
+            singerService.batchAdd(Lists.newArrayList(singerRO));
+        //}
 
         //Assert.assertEquals(1,singerService.add(singerRO));
     }

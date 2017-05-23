@@ -13,4 +13,6 @@ public interface SongService {
     List<SongRO> pageAll(int page,int pageSize);
 
     int add(SongRO songRO);
+
+    int batchAdd(List<SongRO> songROList);
 }
