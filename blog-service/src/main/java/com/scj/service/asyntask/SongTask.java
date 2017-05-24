@@ -105,6 +105,11 @@ public class SongTask extends BaseTask{
             }
             //拿评论 通过接口
             Elements countElement = songDetailDoc.select("#comment-box");
+            if(countElement.size()==0){
+                songRO.setCommentCount(0L);
+                logger.info("歌曲id:{}查询不到评论次数",songRO.getId());
+                return;
+            }
             String dataTId =countElement.get(0).attr("data-tid");
             String response = NetEaseMusicAPI.sendPostRequest("http://music.163.com/weapi/v1/resource/comments/"+dataTId+"?csrf_token=",
                     NetEaseMusicAPI.encryptedRequest(NetEaseMusicAPI.noLoginJson));
