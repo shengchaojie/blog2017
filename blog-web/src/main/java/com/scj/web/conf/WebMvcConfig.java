@@ -44,15 +44,15 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static*").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoginStatusInterceptor())
-                .addPathPatterns("/**")
+        /*registry.addInterceptor(new LoginStatusInterceptor())
+                .addPathPatterns("*//**")
                 .excludePathPatterns("/hello")
-                .excludePathPatterns("/user/**");
+                .excludePathPatterns("/user*//**");*/
         super.addInterceptors(registry);
     }
 
@@ -61,4 +61,6 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         exceptionResolvers.add(new GlobalExceptionHandler());
         super.configureHandlerExceptionResolvers(exceptionResolvers);
     }
+
+
 }
