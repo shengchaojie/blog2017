@@ -3,8 +3,11 @@ package com.scj.service.music.impl;
 import com.github.pagehelper.PageHelper;
 import com.scj.dal.mapper.music.SongMapper;
 import com.scj.dal.ro.music.SongRO;
+import com.scj.service.music.AlbumService;
+import com.scj.service.music.SingerService;
 import com.scj.service.music.SongService;
 import org.springframework.stereotype.Service;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -26,7 +29,11 @@ public class SongServiceImpl implements SongService{
     @Override
     public List<SongRO> pageAll(int page, int pageSize) {
         PageHelper.startPage(page,pageSize);
-        return songMapper.selectAll();
+
+        Example example =new Example(SongRO.class);
+        example.setOrderByClause("comment_count desc");
+
+        return songMapper.selectByExample(example);
     }
 
     @Override

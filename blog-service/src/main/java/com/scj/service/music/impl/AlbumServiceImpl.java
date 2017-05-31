@@ -43,4 +43,9 @@ public class AlbumServiceImpl implements AlbumService{
     public long count() {
         return albumMapper.selectCount(new AlbumRO());
     }
+
+    @Override
+    public AlbumRO getAlbumById(Long id) {
+        return albumMapper.selectByPrimaryKey(id);
+    }
 }

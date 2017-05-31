@@ -49,4 +49,9 @@ public class SingerServiceImpl implements SingerService{
         return singerMapper.selectCount(new SingerRO());
     }
 
+    @Override
+    public SingerRO getSingerNameById(Long id) {
+        return singerMapper.selectByPrimaryKey(id);
+    }
+
 }

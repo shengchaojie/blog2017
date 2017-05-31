@@ -17,4 +17,6 @@ public interface AlbumService {
     AlbumRO findById(Long id);
 
     long count();
+
+    AlbumRO getAlbumById(Long id);
 }

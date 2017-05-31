@@ -20,4 +20,6 @@ public interface SingerService {
     int batchAdd(List<SingerRO> singerROS);
 
     int count();
+
+    SingerRO getSingerNameById(Long id);
 }
