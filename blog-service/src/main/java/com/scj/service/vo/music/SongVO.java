@@ -22,6 +22,11 @@ public class SongVO {
 
     private Date crawlTime;
 
+    /*
+    就是专辑创建时间
+     */
+    private String createTime;
+
     public String getSongName() {
         return songName;
     }
@@ -85,4 +90,13 @@ public class SongVO {
     public void setCrawlTime(Date crawlTime) {
         this.crawlTime = crawlTime;
     }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
 }
+

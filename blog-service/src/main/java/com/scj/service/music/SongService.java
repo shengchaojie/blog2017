@@ -15,4 +15,6 @@ public interface SongService {
     int add(SongRO songRO);
 
     int batchAdd(List<SongRO> songROList);
+
+    long count();
 }

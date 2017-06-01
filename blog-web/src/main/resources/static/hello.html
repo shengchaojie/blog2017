@@ -1,5 +1,6 @@
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
     <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -21,21 +22,44 @@
         }
     </style>
     <script type="text/javascript">
+        var context ='http://localhost:9090';
+
         $(function(){
             var context ='http://localhost:9090';
-            console.log(context);
-            $.ajax({
-                type:'POST',
-                url:context+'/music/page',
-                contentType:'application/json',
-                dataType:'json',
-                data:JSON.stringify({
-                    page:1,
-                    limit:10
-                }),
-                success:function(result){
-                    var data =result.object;
-                    console.log(data);
+            var currentPage =1;
+            var totalPage =0;
+
+            getSongData(1,function(result){
+                var data =result.list;
+                totalPage =result.total;
+                for(var i =0 ,length =data.length;i<length;i++){
+                    var element =
+                        '<tr>'+
+                        '<td><a href="'+data[i].songUrl+'" target="_blank">'+data[i].songName+'</a></td>'+
+                        '<td>'+data[i].singerName+'</td>'+
+                        '<td>'+data[i].albumName+'</td>'+
+                        '<td>'+data[i].commentCount+'</td>'+
+                        '<td>'+data[i].createTime+'</td>'+
+                        '</tr>';
+                    $('#music-table-body').append(element);
+                }
+            });
+
+            $('.pagination>li>a').click(function () {
+                var index =$(this).data("index");
+                console.log(index);
+                if(index=='pre'&&currentPage>1){
+                    currentPage =currentPage -1;
+                }else if(index=='nxt'&&currentPage<totalPage){
+                    currentPage =currentPage +1;
+                }else if(index>0 &&index<totalPage){
+                    currentPage =index;
+                }else {
+                    return;
+                }
+                getSongData(currentPage,function(result){
+                    var songs ='';
+                    var data =result.list;
                     for(var i =0 ,length =data.length;i<length;i++){
                         var element =
                             '<tr>'+
@@ -43,13 +67,50 @@
                             '<td>'+data[i].singerName+'</td>'+
                             '<td>'+data[i].albumName+'</td>'+
                             '<td>'+data[i].commentCount+'</td>'+
-                            '<td>'+'2008-8-8'+'</td>'+
+                            '<td>'+data[i].createTime+'</td>'+
                             '</tr>';
-                        $('#music-table-body').append(element);
+                        songs+=element;
                     }
+                    $('#music-table-body').empty();
+                    $('#music-table-body').append(songs);
+                    drawPaginationIndex(currentPage,totalPage);
+                });
+
+            })
+        });
+
+        function getSongData(page,callback){
+            $.ajax({
+                type:'POST',
+                url:context+'/music/page',
+                contentType:'application/json',
+                dataType:'json',
+                data:JSON.stringify({
+                    page:page,
+                    limit:20
+                }),
+                success:function(result){
+                    var data =result.object;
+                    console.log(data);
+                    callback(data);
                 }
             });
-        });
+        }
+
+        function drawPaginationIndex(start,total){
+            console.log(start,total);
+            if(total-5<start){
+                start =total-5;
+            }
+            var elements ='';
+            $('.pagination-index').each(function () {
+                //console.log($(this).data('index'));
+                //console.log(start);
+                $(this).data('index',start);
+                $(this).html(start);
+                start++;
+            })
+        }
     </script>
 </head>
 <body>
@@ -85,18 +146,18 @@
     </table>
     <nav aria-label="Page navigation">
         <ul class="pagination">
-            <li>
-                <a href="#" aria-label="Previous">
+            <li id="pagination-pre">
+                <a href="javascript:void(0)" aria-label="Previous" data-index="pre">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
-            <li><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
-            <li><a href="#">5</a></li>
+            <li><a href="javascript:void(0)" data-index="1" class="pagination-index">1</a></li>
+            <li><a href="javascript:void(0)" data-index="2" class="pagination-index">2</a></li>
+            <li><a href="javascript:void(0)" data-index="3" class="pagination-index">3</a></li>
+            <li><a href="javascript:void(0)" data-index="4" class="pagination-index">4</a></li>
+            <li><a href="javascript:void(0)" data-index="5" class="pagination-index">5</a></li>
             <li>
-                <a href="#" aria-label="Next">
+                <a href="javascript:void(0)" aria-label="Next" data-index="nxt">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             </li>

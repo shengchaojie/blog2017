@@ -45,4 +45,9 @@ public class SongServiceImpl implements SongService{
     public int batchAdd(List<SongRO> songROList) {
         return songMapper.insertListWithId(songROList);
     }
+
+    @Override
+    public long count() {
+        return songMapper.selectCount(null);
+    }
 }
