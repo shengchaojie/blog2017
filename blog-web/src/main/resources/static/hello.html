@@ -1,6 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>无聊的盛超杰作</title>
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
     <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -20,15 +21,41 @@
             width: 80%;
             margin:0 auto;
         }
+        .pagination-search-text{
+            float: left;
+            height: 34px;
+            width: 50px;
+            border: 1px solid #ddd;
+            margin-left: -1px;
+        }
+        .pagination-search-button{
+            float: left;
+            height: 34px;
+            color: #337ab7;
+            background-color: #fff;
+            margin-left: -1px;
+            border: 1px solid #ddd;
+            border-radius: 0px;
+        }
+        .music-container{
+            margin-left: 10%;
+        }
+        .container h1{
+            font-size: 60px;
+            font-family: "Helvetica Neue",Helvetica,Arial,"Hiragino Sans GB","Hiragino Sans GB W3","Microsoft YaHei UI","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;
+        }
+        .container p{
+            font-size: 30px;
+            font-family: "Helvetica Neue",Helvetica,Arial,"Hiragino Sans GB","Hiragino Sans GB W3","Microsoft YaHei UI","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;
+        }
     </style>
     <script type="text/javascript">
-        var context ='http://localhost:9090';
+        var context ='http://music.shengchaojie.com';//上线使用这个 应该想个办法动态切换
+        //var context ='http://localhost:9090';
+        var currentPage =1;
+        var totalPage =0;
 
         $(function(){
-            var context ='http://localhost:9090';
-            var currentPage =1;
-            var totalPage =0;
-
             getSongData(1,function(result){
                 var data =result.list;
                 totalPage =result.total;
@@ -111,25 +138,51 @@
                 start++;
             })
         }
+
+        function onSearchButtonClick(){
+            var index =$('.pagination-search-text').val();
+            if(index==''){
+                return;
+            }
+            currentPage =parseInt(index);
+            getSongData(currentPage,function(result){
+                var songs ='';
+                var data =result.list;
+                for(var i =0 ,length =data.length;i<length;i++){
+                    var element =
+                        '<tr>'+
+                        '<td><a href="'+data[i].songUrl+'" target="_blank">'+data[i].songName+'</a></td>'+
+                        '<td>'+data[i].singerName+'</td>'+
+                        '<td>'+data[i].albumName+'</td>'+
+                        '<td>'+data[i].commentCount+'</td>'+
+                        '<td>'+data[i].createTime+'</td>'+
+                        '</tr>';
+                    songs+=element;
+                }
+                $('#music-table-body').empty();
+                $('#music-table-body').append(songs);
+                drawPaginationIndex(currentPage,totalPage);
+            });
+        }
     </script>
 </head>
 <body>
 <nav class="navbar navbar-default scj-navigator">
-    <div class="container">
+    <div class="container ">
         <ul class="nav navbar-nav">
-            <li role="presentation" class="active"><a href="#">Home</a></li>
-            <li role="presentation"><a href="#">Profile</a></li>
-            <li role="presentation"><a href="#">Messages</a></li>
+            <li role="presentation" class="active"><a href="#">云音乐</a></li>
+            <!--<li role="presentation"><a href="#">Profile</a></li>
+            <li role="presentation"><a href="#">Messages</a></li>-->
         </ul>
     </div>
 </nav>
 <div class="music-header">
-    <div class="container">
-        <h1>music</h1>
-        <p>scj yo</p>
+    <div class="container ">
+        <h1>2017-06-02</h1>
+        <p>随便玩一下把，为了让字数长一点，好看一点，所以我多写几个字。为了防止服务器被浪费，半成品上上来。</p>
     </div>
 </div>
-<div class ="music-content">
+<div class =" container">
     <table class ="table" >
         <thead>
         <tr>
@@ -156,6 +209,7 @@
             <li><a href="javascript:void(0)" data-index="3" class="pagination-index">3</a></li>
             <li><a href="javascript:void(0)" data-index="4" class="pagination-index">4</a></li>
             <li><a href="javascript:void(0)" data-index="5" class="pagination-index">5</a></li>
+            <li><input class="pagination-search-text"  onkeyup="this.value=this.value.replace(/[^\d]/g,'') " onafterpaste="this.value=this.value.replace(/[^\d]/g,'')" type="text"/><button  type="button" class="btn btn-default pagination-search-button" onclick="onSearchButtonClick()">跳转</button></li>
             <li>
                 <a href="javascript:void(0)" aria-label="Next" data-index="nxt">
                     <span aria-hidden="true">&raquo;</span>
