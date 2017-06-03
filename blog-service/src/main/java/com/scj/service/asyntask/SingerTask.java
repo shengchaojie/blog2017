@@ -1,15 +1,20 @@
 package com.scj.service.asyntask;
 
 import com.scj.dal.ro.music.SingerRO;
+import com.scj.service.event.CrawlEvent;
+import com.scj.service.event.CrawlEventType;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.impl.MusicServiceImpl;
+import org.joda.time.DateTime;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -31,6 +36,9 @@ public class SingerTask extends BaseTask{
     @Resource
     private SingerService singerService;
 
+    @Resource
+    private ApplicationContext applicationContext;
+
     List<MusicServiceImpl.CatalogItem> catalogItems;
 
     public SingerTask() {
@@ -44,6 +52,9 @@ public class SingerTask extends BaseTask{
     @Override
     @Async("myTaskAsyncPool")
     public void doTask() {
+        logger.info("爬取歌手任务开始");
+        boolean isNeedCrawl =false;//做成全局配置
+        if(isNeedCrawl)
         for(MusicServiceImpl.CatalogItem catalogItem:catalogItems){
             try{
                 Document itemDoc = org.jsoup.Jsoup.connect(catalogItem.getUrl()).get();
@@ -55,12 +66,13 @@ public class SingerTask extends BaseTask{
                     if(url.contains("id=")){
                         singerId=url.substring(url.indexOf("id=")+3);
                     }else {
+                        logger.info("解析歌手id出现错误,url:{}",url);
                         continue;
                     }
                     String singerName =singerItem.html();
                     //插入前判断是否存在
                     if(singerService.findById(Long.parseLong(singerId))!=null){
-                        logger.info("歌手id:{}已经存在于数据库");
+                        logger.info("歌手id:{}已经存在于数据库",singerId);
                         //这边的数据很固定 不做更新处理
                         continue;
                     }
@@ -78,9 +90,11 @@ public class SingerTask extends BaseTask{
                     singerService.batchAdd(singerROS);
                 }
             }catch (IOException ex){
-
+                logger.error("爬取歌手出现异常,url:{}",catalogItem.getUrl(),ex);
             }
         }
+        logger.info("爬取歌手任务结束,开启爬专辑任务");
+        applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_ALBUM));
     }
 
     public List<MusicServiceImpl.CatalogItem> getCatalogItems() {
@@ -97,5 +111,9 @@ public class SingerTask extends BaseTask{
 
     public void setSingerService(SingerService singerService) {
         this.singerService = singerService;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new DateTime());
     }
 }

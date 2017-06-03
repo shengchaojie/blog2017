@@ -4,6 +4,8 @@ import com.scj.common.enums.WebPageEnum;
 import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.dal.ro.music.WebPageRO;
+import com.scj.service.event.CrawlEvent;
+import com.scj.service.event.CrawlEventType;
 import com.scj.service.music.AlbumService;
 import com.scj.service.music.WebPageService;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +19,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -37,7 +40,6 @@ public class AlbumTask {
 
     private static final String BASE_URL = "http://music.163.com";
 
-
     private List<SingerRO> singerROs;
 
     private String name;
@@ -55,10 +57,14 @@ public class AlbumTask {
     @Resource
     private WebPageService webPageService;
 
+    @Resource
+    private ApplicationContext applicationContext;
+
     @Async("myTaskAsyncPool")
     public void doTask() {
-        logger.info(Thread.currentThread().getName()+getName());
-        //System.out.println(Thread.currentThread().getName()+getName());
+        logger.info("开始爬取歌曲信息");
+        boolean isNeedCrawl =true;
+        if(isNeedCrawl)
         for (SingerRO singerRO:singerROs){
             try {
                 if(StringUtils.isEmpty(singerRO.getSingerUrl())||!singerRO.getSingerUrl().contains("artist")){
@@ -93,14 +99,15 @@ public class AlbumTask {
                 while(isHaveNext){
                     Elements currentAlbums =document.select("ul#m-song-module>li");
                     for (Element album :currentAlbums){
-                        //System.out.println(album.attr("title")+" "+BASE_URL+album.select("a.msk").attr("href"));
                         String url =BASE_URL+album.select("div>a.msk").attr("href");
                         String imgUrl =album.select("div>img").attr("src");
                         if(!url.contains("id=")){
+                            logger.info("专辑url解析id失败,跳过,url:{}",url);
                             continue;
                         }
                         String albumId =url.substring(url.indexOf("id=")+3);
                         if(albumService.findById(Long.parseLong(albumId))!=null){
+                            logger.info("专辑id:{}已经存在",albumId);
                             continue;
                         }
                         AlbumRO albumRO =new AlbumRO();
@@ -138,14 +145,10 @@ public class AlbumTask {
                         webPageService.add(webPageRO);
                     }
                     index++;
-                    /*try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }*/
                 }
 
             }catch (IOException ex){
+                //后期可以对失败的进行缓存 在进行爬取
                 logger.error("获取歌手专辑io出现异常,休息半小时",ex);
                 try {
                     Thread.sleep(1800000);
@@ -154,6 +157,7 @@ public class AlbumTask {
                 }
             }
         }
+        logger.info("爬取专辑结束");
     }
 
     public List<SingerRO> getSingerROs() {

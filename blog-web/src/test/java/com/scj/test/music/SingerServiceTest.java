@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.music.SingerService;
+import com.scj.service.music.SongService;
 import com.scj.web.Application;
 import org.apache.commons.lang3.CharSet;
 import org.apache.commons.lang3.CharSetUtils;
@@ -33,6 +34,9 @@ public class SingerServiceTest {
 
     @Resource
     private SingerService singerService;
+
+    @Resource
+    private SongService songService;
 
     @Test
     @Rollback(false)
@@ -68,5 +72,11 @@ public class SingerServiceTest {
     @Test
     public void testCount(){
         System.out.println(singerService.count());
+    }
+
+
+    @Test
+    public void testSetCommentCount(){
+        songService.updateSongCommentCount(59867L,111L);
     }
 }

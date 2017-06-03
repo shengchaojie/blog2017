@@ -31,6 +31,7 @@ public class SongServiceImpl implements SongService{
         PageHelper.startPage(page,pageSize);
 
         Example example =new Example(SongRO.class);
+        example.setTableName("music_song");
         example.setOrderByClause("comment_count desc");
 
         return songMapper.selectByExample(example);
@@ -49,5 +50,13 @@ public class SongServiceImpl implements SongService{
     @Override
     public long count() {
         return songMapper.selectCount(null);
+    }
+
+    @Override
+    public int updateSongCommentCount(Long id,Long count) {
+        SongRO songRO =new SongRO();
+        songRO.setId(id);
+        songRO.setCommentCount(count);
+        return songMapper.updateByPrimaryKeySelective(songRO);
     }
 }

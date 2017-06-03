@@ -8,7 +8,7 @@ import java.util.Date;
 /**
  * Created by Administrator on 2017/5/21 0021.
  */
-@Table(name = "music_song")
+@Table(name = "music_song",schema = "blog")
 public class SongRO extends BaseRO{
 
     private String songName;
@@ -67,15 +67,19 @@ public class SongRO extends BaseRO{
         this.commentCount = commentCount;
     }
 
-    public long getSingerId() {
+    public Long getSingerId() {
         return singerId;
     }
 
-    public void setSingerId(long singerId) {
+    public void setSingerId(Long singerId) {
         this.singerId = singerId;
     }
 
-    public long getAlbumId() {
+    public void setAlbumId(Long albumId) {
+        this.albumId = albumId;
+    }
+
+    public Long getAlbumId() {
         return albumId;
     }
 

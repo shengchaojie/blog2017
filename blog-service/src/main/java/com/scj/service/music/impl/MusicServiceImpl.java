@@ -8,6 +8,8 @@ import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.asyntask.AlbumTask;
 import com.scj.service.asyntask.SingerTask;
 import com.scj.service.asyntask.SongTask;
+import com.scj.service.event.CrawlEvent;
+import com.scj.service.event.CrawlEventType;
 import com.scj.service.music.AlbumService;
 import com.scj.service.music.MusicService;
 import com.scj.service.music.SingerService;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -47,8 +50,7 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
     private static final String BASE_URL = "http://music.163.com";
     private static final String SINGER_CATALOG_URL="http://music.163.com/discover/artist";
 
-    private static final Integer THREAD_POOL_SIZE =3;
-    private static final Integer PAGE_SIZE =100;
+    private static final Integer PAGE_SIZE =1000;
 
     @Resource
     private SingerService singerService;
@@ -67,7 +69,7 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             Map<String,String> catalogMap =new HashMap<>();
             for (Element cat : catalogs) {
                 catalogMap.put(cat.html(),BASE_URL+cat.attr("href"));
-                System.out.println(cat.html() + " " + cat.attr("href"));
+                logger.info(cat.html() + " " + cat.attr("href"));
             }
             List<CatalogItem> catalogItems =new ArrayList<>();
             int i =1;
@@ -89,18 +91,25 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
                         catalogItems.clear();
                     }
                 }
-                if(!CollectionUtils.isEmpty(catalogItems)){
-                    SingerTask singerTask =applicationContext.getBean(SingerTask.class);
-                    singerTask.setName("singer"+i++);
-                    singerTask.setCatalogItems(catalogItems);
-                    singerTask.doTask();
-                }
             }
-            //开启线程爬取
+            //开启单线程爬取
+            if(!CollectionUtils.isEmpty(catalogItems)){
+                logger.info("开始启动线程,一共有{}个类别",catalogItems.size());
+                SingerTask singerTask =applicationContext.getBean(SingerTask.class);
+                singerTask.setName("singer");
+                singerTask.setCatalogItems(catalogItems);
+                singerTask.doTask();
+            }
         }catch (IOException ex){
             logger.error("爬取歌手清单出现异常",ex);
         }
 
+    }
+
+    @Scheduled(cron = "0 12 2 4 * ? ")
+    public void startJob(){
+        logger.info("定时任务开始执行...");
+        crawlAllSinger();
     }
 
     @Override
@@ -116,6 +125,8 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
                 task.setSingerROs(singerROs);
                 task.doTask();
             }
+            //理论上线程池有先来后到，上面的运行完了，才会执行这个线程
+            applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SONG));
         }
 
     }
