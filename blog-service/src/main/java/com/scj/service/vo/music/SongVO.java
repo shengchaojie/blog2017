@@ -6,6 +6,8 @@ import java.util.Date;
  * Created by Administrator on 2017/5/21 0021.
  */
 public class SongVO {
+    private Long id;
+
     private String songName;
 
     private String songUrl;
@@ -97,6 +99,14 @@ public class SongVO {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
 

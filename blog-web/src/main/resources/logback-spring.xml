@@ -35,11 +35,15 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="console"/>
+       <!-- <appender-ref ref="console"/>-->
         <appender-ref ref="file"/>
     </root>
 
     <logger name ="com.scj.service" addtivity="false" level="INFO">
         <appender-ref ref="file-service"/>
+    </logger>
+
+    <logger name="com.scj.dal.mapper" addtivity="false" level="DEBUG">
+        <appender-ref ref="file"/>
     </logger>
 </configuration>

@@ -17,8 +17,10 @@ public class NormalTest {
         long count =0;
         while (true){
             try {
-                Document doc = Jsoup.connect("http://music.163.com/artist?id="+(4397+count)).get();
-                System.out.println(doc.body().html().length());
+                Document doc = Jsoup.connect("http://music.163.com/artist?id="+(4397+count))
+                        .proxy("119.4.13.85",808)
+                        .get();
+                //System.out.println(doc.body().html().length());
                 System.out.println(count);
                 count++;
             } catch (IOException e) {

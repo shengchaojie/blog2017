@@ -93,7 +93,7 @@ public class SongTask extends BaseTask{
                 }
                 songService.batchAdd(songROList);
             } catch (IOException e) {
-                logger.error("jsoup连接失败",e);
+                logger.error("jsoup连接失败，url:{}",albumUrl,e);
             }
         }
         logger.info("结束爬取歌曲");

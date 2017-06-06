@@ -15,6 +15,7 @@ import com.scj.service.music.MusicService;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.WebPageService;
 import com.scj.service.user.UserService;
+import com.sun.org.apache.bcel.internal.generic.BranchHandle;
 import com.sun.org.apache.xpath.internal.WhitespaceStrippingElementMatcher;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -106,7 +107,6 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     }
 
-    @Scheduled(cron = "0 12 2 4 * ? ")
     public void startJob(){
         logger.info("定时任务开始执行...");
         crawlAllSinger();
@@ -116,6 +116,8 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
     public void crawlSingerAlbum() {
         int total =singerService.count();
         if(total>0){
+            boolean isNeedCrawl =false;
+            if(isNeedCrawl)
             for(int i =0;i<total/PAGE_SIZE+1;i++){
                 List<SingerRO> singerROs =singerService.pageAll(i+1,PAGE_SIZE);
                 /*albumTask.setSingerROs(singerROs);

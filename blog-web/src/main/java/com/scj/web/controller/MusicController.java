@@ -1,8 +1,11 @@
 package com.scj.web.controller;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Charsets;
 import com.scj.common.Page;
 import com.scj.common.ResponseResult;
 import com.scj.common.exception.StatusCode;
+import com.scj.common.utils.NetEaseMusicAPI;
 import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.dal.ro.music.SongRO;
@@ -11,16 +14,16 @@ import com.scj.service.music.SingerService;
 import com.scj.service.music.SongService;
 import com.scj.service.vo.music.SongVO;
 import com.scj.web.query.SongQuery;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -45,7 +48,7 @@ public class MusicController {
 
     @RequestMapping(value = "/page",method = RequestMethod.POST)
     @ResponseBody
-    public ResponseResult<Page<SongVO>> getSongByPage(@RequestBody SongQuery songQuery){
+    public ResponseResult<Page<SongVO>> getSongByPage(@RequestBody SongQuery songQuery) throws UnsupportedEncodingException {
         List<SongVO> result =new ArrayList<>();
         long total =songService.count();
         if(total<=0){
@@ -66,9 +69,26 @@ public class MusicController {
                 }
                 SingerRO singerRO =singerService.getSingerNameById(songRO.getSingerId());
                 songVO.setSingerName(singerRO== null?"":singerRO.getSingerName());
+                songVO.setSongName(URLDecoder.decode(songVO.getSongName(),"utf-8"));
                 result.add(songVO);
             }
         }
         return new ResponseResult<>(StatusCode.OK,new Page<>(result,total));
+    }
+
+    @RequestMapping(value = "/song/count",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseResult<Long> getSongCommentCount(@RequestParam("songId")Long songId){
+        String response = NetEaseMusicAPI.sendPostRequest("http://music.163.com/weapi/v1/resource/comments/R_SO_4_"+songId+"?csrf_token=",
+                NetEaseMusicAPI.encryptedRequest(NetEaseMusicAPI.noLoginJson));
+        if(!StringUtils.isEmpty(response)){
+            JSONObject jsonObject= (JSONObject) JSONObject.parse(response);
+            if(jsonObject!=null&&jsonObject.containsKey("total")){
+                Long count =Long.parseLong(jsonObject.get("total").toString());
+                songService.updateSongCommentCount(songId,count);
+                return new ResponseResult<Long>(StatusCode.OK,count);
+            }
+        }
+        return new ResponseResult<Long>(StatusCode.FAILED);
     }
 }

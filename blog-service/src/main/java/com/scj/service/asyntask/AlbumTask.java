@@ -4,15 +4,11 @@ import com.scj.common.enums.WebPageEnum;
 import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.dal.ro.music.WebPageRO;
-import com.scj.service.event.CrawlEvent;
-import com.scj.service.event.CrawlEventType;
 import com.scj.service.music.AlbumService;
 import com.scj.service.music.WebPageService;
 import org.apache.commons.lang3.StringUtils;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -63,10 +59,8 @@ public class AlbumTask {
     @Async("myTaskAsyncPool")
     public void doTask() {
         logger.info("开始爬取歌曲信息");
-        boolean isNeedCrawl =true;
-        if(isNeedCrawl)
         for (SingerRO singerRO:singerROs){
-            try {
+
                 if(StringUtils.isEmpty(singerRO.getSingerUrl())||!singerRO.getSingerUrl().contains("artist")){
                     continue;
                 }
@@ -78,22 +72,22 @@ public class AlbumTask {
                     document =Jsoup.parse(webPageRO.getWebpageContent());
                 }else {
                     String albumUrl =singerRO.getSingerUrl().replace("artist","artist/album");
-                    document = Jsoup.connect(albumUrl)
-                            //.proxy("127.0.0.1",1080)
-                            .get();
-                    webPageRO =new WebPageRO();
-                    webPageRO.setWebpageId(singerRO.getId());
-                    webPageRO.setWebpageType(WebPageEnum.SINGER);
-                    webPageRO.setCrawled(true);
-                    webPageRO.setCrawlTime(new Date());
-                    webPageRO.setWebpageContent(document.html());
-                    webPageService.add(webPageRO);
+                    try {
+                        document = Jsoup.connect(albumUrl)
+                                //.proxy("127.0.0.1",1080)
+                                .get();
+                        webPageRO =new WebPageRO();
+                        webPageRO.setWebpageId(singerRO.getId());
+                        webPageRO.setWebpageType(WebPageEnum.SINGER);
+                        webPageRO.setCrawled(true);
+                        webPageRO.setCrawlTime(new Date());
+                        webPageRO.setWebpageContent(document.html());
+                        webPageService.add(webPageRO);
+                    }catch (IOException ex){
+                        logger.error("记录下载webpage错误的url:{}",albumUrl,ex);
+                    }
                 }
-                /*try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+
                 boolean isHaveNext =true;
                 int index =1;
                 while(isHaveNext){
@@ -132,30 +126,26 @@ public class AlbumTask {
                         document =Jsoup.parse(webPageRO.getWebpageContent());
                     }else {
                         String albumUrl =BASE_URL+nextPageEle.get(0).attr("href");
-                        document = Jsoup.connect(albumUrl)
-                                //.proxy("127.0.0.1",1080)
-                                .get();
-                        webPageRO =new WebPageRO();
-                        webPageRO.setWebpageId(singerRO.getId());
-                        webPageRO.setWebpageType(WebPageEnum.SINGER);
-                        webPageRO.setCrawled(true);
-                        webPageRO.setCrawlTime(new Date());
-                        webPageRO.setWebpageIndex(index);
-                        webPageRO.setWebpageContent(document.html());
-                        webPageService.add(webPageRO);
+                        try {
+                            document = Jsoup.connect(albumUrl)
+                                    //.proxy("127.0.0.1",1080)
+                                    .get();
+                            webPageRO = new WebPageRO();
+                            webPageRO.setWebpageId(singerRO.getId());
+                            webPageRO.setWebpageType(WebPageEnum.SINGER);
+                            webPageRO.setCrawled(true);
+                            webPageRO.setCrawlTime(new Date());
+                            webPageRO.setWebpageIndex(index);
+                            webPageRO.setWebpageContent(document.html());
+                            webPageService.add(webPageRO);
+                        }catch (IOException ex){
+                            logger.error("记录下载webpage错误的url:{}",albumUrl,ex);
+                        }
                     }
                     index++;
                 }
 
-            }catch (IOException ex){
-                //后期可以对失败的进行缓存 在进行爬取
-                logger.error("获取歌手专辑io出现异常,休息半小时",ex);
-                try {
-                    Thread.sleep(1800000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+
         }
         logger.info("爬取专辑结束");
     }
