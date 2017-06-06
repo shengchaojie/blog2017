@@ -15,6 +15,7 @@ import com.scj.service.music.SongService;
 import com.scj.service.vo.music.SongVO;
 import com.scj.web.query.SongQuery;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Connection;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.stereotype.Controller;
@@ -90,5 +91,12 @@ public class MusicController {
             }
         }
         return new ResponseResult<Long>(StatusCode.FAILED);
+    }
+
+    @RequestMapping(value = "/song/mp3Url",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseResult<String> getSongMp3Url(@RequestParam("songId")Long songId){
+        String url =NetEaseMusicAPI.getSongMp3Url(songId.toString());
+        return new ResponseResult<>(StringUtils.isEmpty(url)? StatusCode.FAILED:StatusCode.OK,url);
     }
 }

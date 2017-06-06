@@ -1,9 +1,12 @@
 package com.scj.common.utils;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Charsets;
 import com.google.common.base.Utf8;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -14,6 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.tomcat.util.codec.binary.Base64;
+import sun.java2d.pipe.SpanIterator;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -124,6 +128,38 @@ public class NetEaseMusicAPI {
         }
 
         return response;
+    }
+
+    /**
+     * http://blog.csdn.net/Ciiiiiing/article/details/62434438
+     * @param songId
+     * @return
+     */
+    public static String getSongMp3Url(String songId){
+        String first_param = "{\"ids\":\"[" + songId + "]\",\"br\":128000,\"csrf_token\":\"\"}";
+        String response = sendPostRequest("http://music.163.com/weapi/song/enhance/player/url?csrf_token=",encryptedRequest(first_param));
+        if(!StringUtils.isEmpty(response)){
+            JSONObject jsonObject= (JSONObject) JSONObject.parse(response);//data//url
+            if(jsonObject!=null&&jsonObject.containsKey("data")){
+                JSONArray array = (JSONArray) jsonObject.get("data");
+                if(array!=null&&array.size()>0){
+                    JSONObject object =array.getJSONObject(0);
+                    if(object.containsKey("url")){
+                        return object.get("url").toString();
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
+    public static void main(String[] args) {
+        /*String first_param = "{\"ids\":\"[" + "175991" + "]\",\"br\":128000,\"csrf_token\":\"\"}";
+        String response = sendPostRequest("http://music.163.com/weapi/song/enhance/player/url?csrf_token=",encryptedRequest(first_param));
+        JSONObject jsonObject= (JSONObject) JSONObject.parse(response);//data//url
+        System.out.println(response);*/
+
+        System.out.println(getSongMp3Url("186016"));
     }
 
 }
