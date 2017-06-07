@@ -159,7 +159,7 @@ public class NetEaseMusicAPI {
         JSONObject jsonObject= (JSONObject) JSONObject.parse(response);//data//url
         System.out.println(response);*/
 
-        System.out.println(getSongMp3Url("186016"));
+        System.out.println(getSongMp3Url("186001"));
     }
 
 }
