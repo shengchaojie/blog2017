@@ -96,7 +96,16 @@ public class MusicController {
     @RequestMapping(value = "/song/mp3Url",method = RequestMethod.GET)
     @ResponseBody
     public ResponseResult<String> getSongMp3Url(@RequestParam("songId")Long songId){
+
+        SongRO songRO =songService.findById(songId);
+        if(songRO!=null&&!StringUtils.isEmpty(songRO.getSongDownloadUrl())){
+            return new ResponseResult<>(StatusCode.OK,songRO.getSongDownloadUrl());
+        }
         String url =NetEaseMusicAPI.getSongMp3Url(songId.toString());
-        return new ResponseResult<>(StringUtils.isEmpty(url)? StatusCode.FAILED:StatusCode.OK,url);
+        if(!StringUtils.isEmpty(url)){
+            songService.updateSongDownloadUrl(songId,url);
+            return new ResponseResult<>(StatusCode.OK,url);
+        }
+        return new ResponseResult<>(StatusCode.FAILED,"");
     }
 }

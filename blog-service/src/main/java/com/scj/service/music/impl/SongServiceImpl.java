@@ -59,4 +59,12 @@ public class SongServiceImpl implements SongService{
         songRO.setCommentCount(count);
         return songMapper.updateByPrimaryKeySelective(songRO);
     }
+
+    @Override
+    public int updateSongDownloadUrl(Long id, String url) {
+        SongRO songRO =new SongRO();
+        songRO.setId(id);
+        songRO.setSongDownloadUrl(url);
+        return songMapper.updateByPrimaryKeySelective(songRO);
+    }
 }
