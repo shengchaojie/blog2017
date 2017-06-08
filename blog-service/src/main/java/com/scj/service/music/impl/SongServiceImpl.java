@@ -6,6 +6,8 @@ import com.scj.dal.ro.music.SongRO;
 import com.scj.service.music.AlbumService;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.SongService;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
@@ -16,6 +18,7 @@ import java.util.List;
  * Created by Administrator on 2017/5/21 0021.
  */
 @Service
+@CacheConfig(cacheNames = "music")
 public class SongServiceImpl implements SongService{
 
     @Resource
@@ -26,6 +29,7 @@ public class SongServiceImpl implements SongService{
         return songMapper.selectByPrimaryKey(id);
     }
 
+    @Cacheable
     @Override
     public List<SongRO> pageAll(int page, int pageSize) {
         PageHelper.startPage(page,pageSize);

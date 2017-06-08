@@ -38,7 +38,6 @@ import java.util.List;
 @Controller
 @EnableAutoConfiguration
 @RequestMapping("/music")
-@CacheConfig(cacheNames = "music")
 public class MusicController {
 
     @Resource
@@ -50,7 +49,6 @@ public class MusicController {
     @Resource
     private AlbumService albumService;
 
-    @Cacheable
     @RequestMapping(value = "/page",method = RequestMethod.POST)
     @ResponseBody
     public ResponseResult<Page<SongVO>> getSongByPage(@RequestBody SongQuery songQuery) throws UnsupportedEncodingException {
