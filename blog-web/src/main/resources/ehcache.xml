@@ -5,7 +5,7 @@
     <defaultCache eternal="false" maxElementsInMemory="1000" overflowToDisk="false" diskPersistent="false"
                   timeToIdleSeconds="0" timeToLiveSeconds="600" memoryStoreEvictionPolicy="LRU" />
 
-    <cache name="music" eternal="false" maxElementsInMemory="100" overflowToDisk="false" diskPersistent="false"
-           timeToIdleSeconds="0" timeToLiveSeconds="300" memoryStoreEvictionPolicy="LRU" />
+    <cache name="music" eternal="false" maxElementsInMemory="1000" overflowToDisk="false" diskPersistent="true"
+           timeToIdleSeconds="0" timeToLiveSeconds="120" memoryStoreEvictionPolicy="LRU" />
 
 </ehcache>

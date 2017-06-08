@@ -16,6 +16,11 @@ import com.scj.service.vo.music.SongVO;
 import com.scj.web.query.SongQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cache.annotation.CacheConfig;
@@ -25,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
@@ -39,6 +45,8 @@ import java.util.List;
 @EnableAutoConfiguration
 @RequestMapping("/music")
 public class MusicController {
+
+    private static final Logger logger = LoggerFactory.getLogger(MusicController.class);
 
     @Resource
     private SongService songService;
@@ -110,4 +118,33 @@ public class MusicController {
         }
         return new ResponseResult<>(StatusCode.FAILED,"");
     }
+
+    /**
+     * 寻找爬取失败的歌手
+     * @param songId
+     * @return
+     */
+    @RequestMapping(value = "/song/getLostSinger",method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseResult<String> getLostSinger(@RequestParam("songId")Long songId){
+        SongRO songRO =songService.findById(songId);
+        if(songRO!=null&&!StringUtils.isEmpty(songRO.getSongUrl())){
+            try {
+                Document doc =Jsoup.connect(songRO.getSongUrl()).get();
+                Elements singerEle =doc.select(".cnt p.s-fc4 span a");
+                String singerUrl =singerEle.attr("href");
+                if(!StringUtils.isEmpty(singerUrl)){
+                    String singerId =singerUrl.substring(singerUrl.indexOf("id=")+3);
+                    songService.updateSongSingerId(songId,Long.parseLong(singerId));
+                }
+                String singName =singerEle.html();
+                if(!StringUtils.isEmpty(singName))
+                    return new ResponseResult<>(StatusCode.OK,singName);
+            } catch (IOException e) {
+                logger.error("jsoup框架调用失败",e);
+            }
+        }
+        return new ResponseResult<>(StatusCode.FAILED,"");
+    }
+
 }
