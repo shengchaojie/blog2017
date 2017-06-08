@@ -16,7 +16,7 @@ public class SongVO {
 
     private String imgUrl;
 
-    private long commentCount;
+    private Long commentCount;
 
     private String singerName;
 
@@ -61,11 +61,11 @@ public class SongVO {
         this.imgUrl = imgUrl;
     }
 
-    public long getCommentCount() {
+    public Long getCommentCount() {
         return commentCount;
     }
 
-    public void setCommentCount(long commentCount) {
+    public void setCommentCount(Long commentCount) {
         this.commentCount = commentCount;
     }
 

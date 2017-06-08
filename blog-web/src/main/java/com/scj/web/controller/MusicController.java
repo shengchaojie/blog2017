@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +38,7 @@ import java.util.List;
 @Controller
 @EnableAutoConfiguration
 @RequestMapping("/music")
+@CacheConfig(cacheNames = "music")
 public class MusicController {
 
     @Resource
@@ -47,6 +50,7 @@ public class MusicController {
     @Resource
     private AlbumService albumService;
 
+    @Cacheable
     @RequestMapping(value = "/page",method = RequestMethod.POST)
     @ResponseBody
     public ResponseResult<Page<SongVO>> getSongByPage(@RequestBody SongQuery songQuery) throws UnsupportedEncodingException {

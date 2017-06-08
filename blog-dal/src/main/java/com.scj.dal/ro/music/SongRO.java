@@ -2,6 +2,7 @@ package com.scj.dal.ro.music;
 
 import com.scj.dal.ro.BaseRO;
 
+import javax.persistence.Column;
 import javax.persistence.Table;
 import java.util.Date;
 
