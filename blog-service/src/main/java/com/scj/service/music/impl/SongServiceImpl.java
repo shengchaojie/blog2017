@@ -7,6 +7,7 @@ import com.scj.service.music.AlbumService;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.SongService;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
@@ -18,7 +19,6 @@ import java.util.List;
  * Created by Administrator on 2017/5/21 0021.
  */
 @Service
-@CacheConfig(cacheNames = "music")
 public class SongServiceImpl implements SongService{
 
     @Resource
@@ -29,7 +29,7 @@ public class SongServiceImpl implements SongService{
         return songMapper.selectByPrimaryKey(id);
     }
 
-    @Cacheable
+    @Cacheable(value = "music")
     @Override
     public List<SongRO> pageAll(int page, int pageSize) {
         PageHelper.startPage(page,pageSize);
@@ -57,6 +57,7 @@ public class SongServiceImpl implements SongService{
     }
 
     @Override
+    @CacheEvict(value = {"music"},allEntries = true)
     public int updateSongCommentCount(Long id,Long count) {
         SongRO songRO =new SongRO();
         songRO.setId(id);
@@ -65,10 +66,20 @@ public class SongServiceImpl implements SongService{
     }
 
     @Override
+    @CacheEvict(value = {"music"},allEntries = true)
     public int updateSongDownloadUrl(Long id, String url) {
         SongRO songRO =new SongRO();
         songRO.setId(id);
         songRO.setSongDownloadUrl(url);
+        return songMapper.updateByPrimaryKeySelective(songRO);
+    }
+
+    @Override
+    @CacheEvict(value = {"music"},allEntries = true)
+    public int updateSongSingerId(Long id, Long singerId) {
+        SongRO songRO =new SongRO();
+        songRO.setId(id);
+        songRO.setSingerId(singerId);
         return songMapper.updateByPrimaryKeySelective(songRO);
     }
 }

@@ -21,4 +21,6 @@ public interface SongService {
     int updateSongCommentCount(Long id,Long count);
 
     int updateSongDownloadUrl(Long id,String url);
+
+    int updateSongSingerId(Long id,Long singerId);
 }
