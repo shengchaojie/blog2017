@@ -1,11 +1,12 @@
 package com.scj.dal.ro;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * Created by Administrator on 2017/4/9 0009.
  */
-public class BaseRO {
+public class BaseRO implements Serializable{
 
     @Id
     @Column(name = "Id")
