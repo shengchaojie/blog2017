@@ -44,6 +44,23 @@
         </encoder>
     </appender>
 
+    <appender name="file-mapper" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMisMatch>NEUTRAL</onMisMatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/log/${appName}/logback-mapper.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <!--<appender-ref ref="console"/>-->
         <appender-ref ref="file"/>
@@ -51,7 +68,7 @@
     </root>
 
     <logger name="com.scj.dal.mapper" addtivity="false" level="INFO">
-        <appender-ref ref="file"/>
         <appender-ref ref="file-error"/>
+        <appender-ref ref="file-mapper"/>
     </logger>
 </configuration>
