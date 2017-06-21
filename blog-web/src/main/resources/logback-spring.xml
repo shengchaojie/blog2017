@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
     <property name="appName" value="blog2017"/>
-    <property name="log.path" value="/var/log/${appName}/logback.log"/>
+    <property name="log.path" value="/var/log/${appName}"/>
     <contextName>${appName}</contextName>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -11,11 +11,11 @@
     </appender>
 
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}</file>
+        <file>${log.path}/logback.log</file>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
             <onMatch>DENY</onMatch>
-            <onMisMatch>NEUTRAL</onMisMatch>
+            <onMismatch>NEUTRAL</onMismatch>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/var/log/${appName}/logback.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -28,11 +28,11 @@
     </appender>
 
     <appender name="file-error" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}</file>
+        <file>${log.path}/logback-error.log</file>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
             <onMatch>ACCEPT</onMatch>
-            <onMisMatch>DENY</onMisMatch>
+            <onMismatch>DENY</onMismatch>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/var/log/${appName}/logback-error.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -45,11 +45,11 @@
     </appender>
 
     <appender name="file-mapper" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.path}</file>
+        <file>${log.path}/logback-mapper.log</file>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
             <onMatch>DENY</onMatch>
-            <onMisMatch>NEUTRAL</onMisMatch>
+            <onMismatch>NEUTRAL</onMismatch>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/var/log/${appName}/logback-mapper.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -62,12 +62,12 @@
     </appender>
 
     <root level="INFO">
-        <!--<appender-ref ref="console"/>-->
+        <appender-ref ref="console"/>
         <appender-ref ref="file"/>
         <appender-ref ref="file-error"/>
     </root>
 
-    <logger name="com.scj.dal.mapper" addtivity="false" level="INFO">
+    <logger name="com.scj.dal.mapper" addtivity="true" level="debug">
         <appender-ref ref="file-error"/>
         <appender-ref ref="file-mapper"/>
     </logger>

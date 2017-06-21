@@ -54,6 +54,8 @@ public class SingerTask extends BaseTask{
     public void doTask() {
         logger.info("爬取歌手任务开始");
         boolean isNeedCrawl =false;//做成全局配置
+        //获取刷新配置 如果不存在配置一条
+        //这一块数据量比较小 一个月刷新一次
         if(isNeedCrawl)
         for(MusicServiceImpl.CatalogItem catalogItem:catalogItems){
             try{
