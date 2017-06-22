@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<configuration scan="true" scanPeriod="60 seconds" debug="false">
+<configuration scan="true" scanPeriod="60 seconds" debug="true">
     <property name="appName" value="blog2017"/>
-    <property name="log.path" value="/var/log/${appName}"/>
+    <property name="log.path" value="var/log/${appName}"/>
     <contextName>${appName}</contextName>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -18,7 +18,7 @@
             <onMismatch>NEUTRAL</onMismatch>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/${appName}/logback.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${log.path}/${appName}/logback.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
@@ -35,7 +35,7 @@
             <onMismatch>DENY</onMismatch>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/${appName}/logback-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${log.path}/${appName}/logback-error.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
@@ -52,7 +52,7 @@
             <onMismatch>NEUTRAL</onMismatch>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/${appName}/logback-mapper.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${log.path}/${appName}/logback-mapper.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
