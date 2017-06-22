@@ -152,8 +152,10 @@ public class AlbumTask extends BaseTask{
                 }
                 if(!CollectionUtils.isEmpty(cachedAlbumList)){
                     albumService.batchAdd(cachedAlbumList);
-                    musicTaskScheduler.putAlbumItems(cachedAlbumList);
+                    //这边不应该直接加入 应该在事件那边做控制 筛选出应该要爬的数据 再加入
+                    //musicTaskScheduler.putAlbumItems(cachedAlbumList);
                 }
+                // TODO: 2017/6/23 需要更新歌手的crawltime
             }
         }
         try {

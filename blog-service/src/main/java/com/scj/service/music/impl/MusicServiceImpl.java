@@ -2,8 +2,10 @@ package com.scj.service.music.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.scj.common.enums.JobTypeEnum;
 import com.scj.common.threadpool.TaskExecutePool;
 import com.scj.dal.ro.music.AlbumRO;
+import com.scj.dal.ro.music.CrawlInfoRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.asyntask.AlbumTask;
 import com.scj.service.asyntask.CatalogTask;
@@ -11,10 +13,7 @@ import com.scj.service.asyntask.SingerTask;
 import com.scj.service.asyntask.SongTask;
 import com.scj.service.event.CrawlEvent;
 import com.scj.service.event.CrawlEventType;
-import com.scj.service.music.AlbumService;
-import com.scj.service.music.MusicService;
-import com.scj.service.music.SingerService;
-import com.scj.service.music.WebPageService;
+import com.scj.service.music.*;
 import com.scj.service.user.UserService;
 import com.sun.org.apache.bcel.internal.generic.BranchHandle;
 import com.sun.org.apache.xpath.internal.WhitespaceStrippingElementMatcher;
@@ -50,6 +49,9 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     private ApplicationContext applicationContext;
 
+    @Resource
+    private CrawlInfoService crawlInfoService;
+
     @Override
     public void crawlCatalog() {
         CatalogTask catalogTask =applicationContext.getBean(CatalogTask.class);
@@ -82,6 +84,29 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     @Override
     public void crawlSingerAlbum() {
+        //这里需要对上次的爬取事件进行判断，如果超过间隔，重新爬
+        CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.SINGER);
+        boolean isNeedAllCrawled =false;
+        if(crawlInfoRO==null){
+            isNeedAllCrawled =true;
+        }else{
+            long endTime =crawlInfoRO.getCrawlTime().getTime()+crawlInfoRO.getValidDuration()*24*60*60;
+            //当前时间已经超过数据的有效时间
+            if(endTime-new Date().getTime()>0){
+                isNeedAllCrawled =true;
+            }
+        }
+        if(isNeedAllCrawled){
+            crawlInfoRO =new CrawlInfoRO();
+            crawlInfoRO.setCrawlTime(new Date());
+            crawlInfoRO.setDeleted(false);
+            crawlInfoRO.setJobType(JobTypeEnum.SINGER);
+            crawlInfoRO.setValidDuration(30l);
+            crawlInfoService.add(crawlInfoRO);
+            //把需要重新爬取的数据加入
+        }else{
+            //扫描需要爬取的数据加入到scheduler
+        }
         CyclicBarrier cyclicBarrier =new CyclicBarrier(SINGER_TASK_THREAD_SIZE+1);
         for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
             AlbumTask task = applicationContext.getBean(AlbumTask.class,"AlbumTask"+i,cyclicBarrier);
