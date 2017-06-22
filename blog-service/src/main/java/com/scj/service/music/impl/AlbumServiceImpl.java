@@ -24,6 +24,11 @@ public class AlbumServiceImpl implements AlbumService{
     }
 
     @Override
+    public int batchAdd(List<AlbumRO> albumROList) {
+        return albumMapper.insertListWithId(albumROList);
+    }
+
+    @Override
     public List<AlbumRO> findAll() {
         return albumMapper.selectAll();
     }

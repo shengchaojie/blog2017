@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by shengchaojie on 2017/5/23.
@@ -33,78 +35,85 @@ public class SingerTask extends BaseTask{
 
     private static final Logger logger = LoggerFactory.getLogger(SingerTask.class);
 
+    private static final Integer SLEEP_TIME =5;
+
     @Resource
     private SingerService singerService;
 
     @Resource
-    private ApplicationContext applicationContext;
+    private MusicTaskScheduler musicTaskScheduler;
 
-    List<MusicServiceImpl.CatalogItem> catalogItems;
+    private CyclicBarrier barrier;
 
     public SingerTask() {
     }
 
-    public SingerTask(String name, List<MusicServiceImpl.CatalogItem> catalogItems) {
+    public SingerTask(String name,CyclicBarrier barrier) {
         super(name);
-        this.catalogItems = catalogItems;
+        this.barrier=barrier;
     }
 
     @Override
     @Async("myTaskAsyncPool")
     public void doTask() {
         logger.info("爬取歌手任务开始");
-        boolean isNeedCrawl =false;//做成全局配置
+        //boolean isNeedCrawl = false;//做成全局配置
         //获取刷新配置 如果不存在配置一条
         //这一块数据量比较小 一个月刷新一次
-        if(isNeedCrawl)
-        for(MusicServiceImpl.CatalogItem catalogItem:catalogItems){
-            try{
-                Document itemDoc = org.jsoup.Jsoup.connect(catalogItem.getUrl()).get();
-                Elements singerItems =itemDoc.select("ul#m-artist-box li a.nm.nm-icn");
-                List<SingerRO> singerROS =new ArrayList<>();
-                for (Element singerItem:singerItems){
-                    String url =singerItem.attr("href").trim();
-                    String singerId =null;
-                    if(url.contains("id=")){
-                        singerId=url.substring(url.indexOf("id=")+3);
-                    }else {
-                        logger.info("解析歌手id出现错误,url:{}",url);
-                        continue;
-                    }
-                    String singerName =singerItem.html();
-                    //插入前判断是否存在
-                    if(singerService.findById(Long.parseLong(singerId))!=null){
-                        logger.info("歌手id:{}已经存在于数据库",singerId);
-                        //这边的数据很固定 不做更新处理
-                        continue;
-                    }
+        List<MusicServiceImpl.CatalogItem> catalogItems = null;
+        while ((catalogItems = musicTaskScheduler.takeCatalogItems()) != null) {
+            for (MusicServiceImpl.CatalogItem catalogItem : catalogItems) {
+                try {
+                    Document itemDoc = org.jsoup.Jsoup.connect(catalogItem.getUrl()).get();
+                    Elements singerItems = itemDoc.select("ul#m-artist-box li a.nm.nm-icn");
+                    List<SingerRO> singerROS = new ArrayList<>();
+                    for (Element singerItem : singerItems) {
+                        String url = singerItem.attr("href").trim();
+                        String singerId = null;
+                        if (url.contains("id=")) {
+                            singerId = url.substring(url.indexOf("id=") + 3);
+                        } else {
+                            logger.info("解析歌手id出现错误,url:{}", url);
+                            continue;
+                        }
+                        String singerName = singerItem.html();
+                        //插入前判断是否存在
+                        if (singerService.findById(Long.parseLong(singerId)) != null) {
+                            logger.info("歌手id:{}已经存在于数据库", singerId);
+                            //这边的数据很固定 不做更新处理
+                            continue;
+                        }
 
-                    //插入数据到数据库
-                    SingerRO singerRO =new SingerRO();
-                    singerRO.setId(Long.parseLong(singerId));
-                    singerRO.setSingerName(singerName);
-                    singerRO.setSingerUrl(BASE_URL+url);
-                    singerRO.setFirstLetter(catalogItem.getFirstLetter());
-                    singerRO.setCrawlTime(new Date());
-                    singerROS.add(singerRO);
+                        //插入数据到数据库
+                        SingerRO singerRO = new SingerRO();
+                        singerRO.setId(Long.parseLong(singerId));
+                        singerRO.setSingerName(singerName);
+                        singerRO.setSingerUrl(BASE_URL + url);
+                        singerRO.setFirstLetter(catalogItem.getFirstLetter());
+                        singerRO.setCrawlTime(new Date());
+                        singerROS.add(singerRO);
+                    }
+                    if (!CollectionUtils.isEmpty(singerROS)) {
+                        singerService.batchAdd(singerROS);
+                        musicTaskScheduler.putSingerItems(singerROS);
+                        logger.info("爬取{}首歌手",singerROS.size());
+                    }
+                    Thread.sleep(SLEEP_TIME);
+                } catch (IOException ex) {
+                    logger.error("爬取歌手出现异常,url:{}", catalogItem.getUrl(), ex);
+                } catch (InterruptedException e) {
+                    logger.error("爬取歌手线程休眠被打断",e);
                 }
-                if(!CollectionUtils.isEmpty(singerROS)){
-                    singerService.batchAdd(singerROS);
-                }
-            }catch (IOException ex){
-                logger.error("爬取歌手出现异常,url:{}",catalogItem.getUrl(),ex);
             }
         }
-        logger.info("爬取歌手任务结束,开启爬专辑任务");
-        applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_ALBUM));
-    }
-
-    public List<MusicServiceImpl.CatalogItem> getCatalogItems() {
-        return catalogItems;
-    }
-
-    public void setCatalogItems(List<MusicServiceImpl.CatalogItem> catalogItems) {
-        this.catalogItems = catalogItems;
+        try {
+            barrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+        logger.info("线程:{}爬取歌手任务结束,开启爬专辑任务",getName());
     }
 
     public SingerService getSingerService() {

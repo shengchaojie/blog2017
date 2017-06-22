@@ -74,5 +74,20 @@ public class MusicServiceTest {
         }
     }
 
+    @Test
+    @Rollback(false)
+    public void testStartJob(){
+        musicService.crawlCatalog();
+
+        while(true) {
+            synchronized (this) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 }

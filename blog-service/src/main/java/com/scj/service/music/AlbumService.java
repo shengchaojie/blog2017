@@ -10,6 +10,8 @@ import java.util.List;
 public interface AlbumService {
     int add(AlbumRO albumRO);
 
+    int batchAdd(List<AlbumRO> albumROList);
+
     List<AlbumRO> findAll();
 
     List<AlbumRO> pageAll(int page,int pageSize);

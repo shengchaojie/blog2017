@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by shengchaojie on 2017/5/23.
@@ -39,67 +41,72 @@ public class SongTask extends BaseTask{
     @Resource
     private WebPageService webPageService;
 
-    private List<AlbumRO> albumROList;
+    @Resource
+    private MusicTaskScheduler musicTaskScheduler;
+
 
     public SongTask() {
     }
 
-    public SongTask(String name, List<AlbumRO> albumROList) {
+    public SongTask(String name) {
         super(name);
-        this.albumROList = albumROList;
     }
 
     @Override
     @Async("myTaskAsyncPool")
     public void doTask() {
-        logger.info("开始爬取歌手");
-        for (AlbumRO albumRO: albumROList){
-            String albumUrl =albumRO.getAlbumUrl();
-            try {
-                Document albumDoc = Jsoup.connect(albumUrl).get();
-                Elements songs =albumDoc.select("ul.f-hide li a");
-                List<SongRO> songROList =new ArrayList<>();
-                for (Element song :songs){
-                    //String url =BASE_URL+song.attr("href");
-                    //System.out.println(song.html()+" "+url+" "+crawlAlbumSongCommentCount(url));
-                    String songUrl =BASE_URL+song.attr("href");
-                    Long songId =Long.parseLong(songUrl.substring(songUrl.indexOf("id=")+3));
-                    if(!songUrl.contains("id=")){
-                        logger.info("歌曲url:{}解析id失败",songUrl);
-                        continue;
-                    }
-                    if(songService.findById(songId)!=null){
-                        logger.info("歌曲id:{}已经存在,进行评论数更新",songId);
-                        Long count =crawlSongCommentCount(songUrl);
-                        if(count>0){
-                            songService.updateSongCommentCount(songId,count);
-                            logger.info("歌曲id:{}评论数更新为{}",songId,count);
+        logger.info("线程{}开始爬取歌手",getName());
+        List<AlbumRO> albumROList =null;
+        while ((albumROList =musicTaskScheduler.takeAlbumItems())!=null) {
+            for (AlbumRO albumRO : albumROList) {
+                String albumUrl = albumRO.getAlbumUrl();
+                try {
+                    Document albumDoc = Jsoup.connect(albumUrl).get();
+                    Elements songs = albumDoc.select("ul.f-hide li a");
+                    List<SongRO> songROList = new ArrayList<>();
+                    for (Element song : songs) {
+                        //String url =BASE_URL+song.attr("href");
+                        //System.out.println(song.html()+" "+url+" "+crawlAlbumSongCommentCount(url));
+                        String songUrl = BASE_URL + song.attr("href");
+                        Long songId = Long.parseLong(songUrl.substring(songUrl.indexOf("id=") + 3));
+                        if (!songUrl.contains("id=")) {
+                            logger.info("歌曲url:{}解析id失败", songUrl);
+                            continue;
                         }
+                        if (songService.findById(songId) != null) {
+                            logger.info("歌曲id:{}已经存在,进行评论数更新", songId);
+                            Long count = crawlSongCommentCount(songUrl);
+                            if (count > 0) {
+                                songService.updateSongCommentCount(songId, count);
+                                logger.info("歌曲id:{}评论数更新为{}", songId, count);
+                            }
+                            continue;
+                        }
+                        SongRO songRO = new SongRO();
+                        songRO.setId(songId);
+                        songRO.setAlbumId(albumRO.getId());
+                        songRO.setSingerId(albumRO.getSingerId());
+                        songRO.setCrawlTime(new Date());
+                        songRO.setSongDownloadUrl("");//调用其他接口
+                        songRO.setSongUrl(songUrl);
+                        songRO.setSongName(song.html());
+                        crawlAlbumSongCommentCount(songRO, songUrl);//爬取歌曲评论数 和 封面url
+                        songROList.add(songRO);
+                    }
+                    if (CollectionUtils.isEmpty(songROList)) {
                         continue;
                     }
-                    SongRO songRO =new SongRO();
-                    songRO.setId(songId);
-                    songRO.setAlbumId(albumRO.getId());
-                    songRO.setSingerId(albumRO.getSingerId());
-                    songRO.setCrawlTime(new Date());
-                    songRO.setSongDownloadUrl("");//调用其他接口
-                    songRO.setSongUrl(songUrl);
-                    songRO.setSongName(song.html());
-                    crawlAlbumSongCommentCount(songRO,songUrl);//爬取歌曲评论数 和 封面url
-                    songROList.add(songRO);
+                    songService.batchAdd(songROList);
+                    logger.info("爬取了{}首歌",songROList.size());
+                } catch (IOException e) {
+                    logger.error("jsoup连接失败，url:{}", albumUrl, e);
                 }
-                if(CollectionUtils.isEmpty(songROList)){
-                    continue;
-                }
-                songService.batchAdd(songROList);
-            } catch (IOException e) {
-                logger.error("jsoup连接失败，url:{}",albumUrl,e);
             }
         }
-        logger.info("结束爬取歌曲");
+        logger.info("线程{}结束爬取歌曲",getName());
     }
 
-    public void crawlAlbumSongCommentCount(SongRO songRO,String songDetailUrl){
+    private void crawlAlbumSongCommentCount(SongRO songRO,String songDetailUrl){
         try {
             Document songDetailDoc = Jsoup.connect(songDetailUrl).get();
             //拿封面
@@ -137,7 +144,7 @@ public class SongTask extends BaseTask{
         }
     }
 
-    public Long crawlSongCommentCount(String songDetailUrl){
+    private Long crawlSongCommentCount(String songDetailUrl){
         try {
             Document songDetailDoc = Jsoup.connect(songDetailUrl).get();
             Elements countElement = songDetailDoc.select("#comment-box");
@@ -158,13 +165,5 @@ public class SongTask extends BaseTask{
             logger.error("爬虫框架出现异常",e);
         }
         return 0L;
-    }
-
-    public List<AlbumRO> getAlbumROList() {
-        return albumROList;
-    }
-
-    public void setAlbumROList(List<AlbumRO> albumROList) {
-        this.albumROList = albumROList;
     }
 }

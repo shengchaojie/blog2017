@@ -61,14 +61,35 @@
         </encoder>
     </appender>
 
+    <appender name="music" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/logback-music.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/${appName}/logback-music.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="console"/>
         <appender-ref ref="file"/>
         <appender-ref ref="file-error"/>
     </root>
 
-    <logger name="com.scj.dal.mapper" addtivity="true" level="debug">
+    <logger name="com.scj.dal.mapper" addtivity="true" level="info">
         <appender-ref ref="file-error"/>
         <appender-ref ref="file-mapper"/>
+    </logger>
+
+    <logger name="com.scj.service.asyntask" addtivity="true" level="info">
+        <appender-ref ref="music"/>
     </logger>
 </configuration>

@@ -5,6 +5,8 @@ package com.scj.service.music;
  */
 public interface MusicService {
 
+    void crawlCatalog();
+
     void crawlAllSinger();
 
     /**

@@ -6,6 +6,7 @@ import com.scj.common.threadpool.TaskExecutePool;
 import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.asyntask.AlbumTask;
+import com.scj.service.asyntask.CatalogTask;
 import com.scj.service.asyntask.SingerTask;
 import com.scj.service.asyntask.SongTask;
 import com.scj.service.event.CrawlEvent;
@@ -35,10 +36,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * Created by Administrator on 2017/5/21 0021.
@@ -48,63 +46,33 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     private static final Logger logger = LoggerFactory.getLogger(MusicServiceImpl.class);
 
-    private static final String BASE_URL = "http://music.163.com";
-    private static final String SINGER_CATALOG_URL="http://music.163.com/discover/artist";
-
-    private static final Integer PAGE_SIZE =1000;
-
-    @Resource
-    private SingerService singerService;
+    private static final Integer SINGER_TASK_THREAD_SIZE =3;
 
     private ApplicationContext applicationContext;
 
-    @Resource
-    private AlbumService albumService;
+    @Override
+    public void crawlCatalog() {
+        CatalogTask catalogTask =applicationContext.getBean(CatalogTask.class);
+        catalogTask.doTask();
+    }
 
     @Override
     public void crawlAllSinger() {
-        try {
-            //爬取所有排行榜
-            Document artistCatalogDoc = Jsoup.connect(SINGER_CATALOG_URL).get();
-            Elements catalogs = artistCatalogDoc.select("div.blk .cat-flag");
-            Map<String,String> catalogMap =new HashMap<>();
-            for (Element cat : catalogs) {
-                catalogMap.put(cat.html(),BASE_URL+cat.attr("href"));
-                logger.info(cat.html() + " " + cat.attr("href"));
-            }
-            List<CatalogItem> catalogItems =new ArrayList<>();
-            int i =1;
-            for(Map.Entry<String,String> entry:catalogMap.entrySet()) {
-                String catalogUrl = entry.getValue();
-                //爬对应排行下面的自分类 热门 A B C D..
-                Document itemDoc = org.jsoup.Jsoup.connect(catalogUrl).get();
-                Elements items =itemDoc.select("ul#initial-selector>li>a");
-                for(Element item :items){
-                    if("热门".equals(item.html())){
-                        continue;
-                    }
-                    catalogItems.add(new CatalogItem(item.html(),BASE_URL+item.attr("href")));
-                    if(catalogItems.size()>=PAGE_SIZE){
-                        SingerTask singerTask =applicationContext.getBean(SingerTask.class);
-                        singerTask.setName("singer"+i++);
-                        singerTask.setCatalogItems(ImmutableList.copyOf(catalogItems));
-                        singerTask.doTask();
-                        catalogItems.clear();
-                    }
-                }
-            }
-            //开启单线程爬取
-            if(!CollectionUtils.isEmpty(catalogItems)){
-                logger.info("开始启动线程,一共有{}个类别",catalogItems.size());
-                SingerTask singerTask =applicationContext.getBean(SingerTask.class);
-                singerTask.setName("singer");
-                singerTask.setCatalogItems(catalogItems);
-                singerTask.doTask();
-            }
-        }catch (IOException ex){
-            logger.error("爬取歌手清单出现异常",ex);
+        //这里基本的思路是 开启多个线程(可以配置)去爬取
+        //然后爬取全部完毕后，在触发下一个任务
+        CyclicBarrier cyclicBarrier =new CyclicBarrier(SINGER_TASK_THREAD_SIZE+1);
+        for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
+            SingerTask singerTask =applicationContext.getBean(SingerTask.class,"singer"+i,cyclicBarrier);
+            singerTask.doTask();
         }
-
+        try {
+            cyclicBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+        applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_ALBUM));
     }
 
     public void startJob(){
@@ -114,36 +82,26 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     @Override
     public void crawlSingerAlbum() {
-        int total =singerService.count();
-        if(total>0){
-            boolean isNeedCrawl =false;
-            if(isNeedCrawl)
-            for(int i =0;i<total/PAGE_SIZE+1;i++){
-                List<SingerRO> singerROs =singerService.pageAll(i+1,PAGE_SIZE);
-                /*albumTask.setSingerROs(singerROs);
-                albumTask.doTask();*/
-                AlbumTask task = applicationContext.getBean(AlbumTask.class);
-                task.setName("page"+(i+1));
-                task.setSingerROs(singerROs);
-                task.doTask();
-            }
-            //理论上线程池有先来后到，上面的运行完了，才会执行这个线程
-            applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SONG));
+        CyclicBarrier cyclicBarrier =new CyclicBarrier(SINGER_TASK_THREAD_SIZE+1);
+        for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
+            AlbumTask task = applicationContext.getBean(AlbumTask.class,"AlbumTask"+i,cyclicBarrier);
+            task.doTask();
         }
-
+        try {
+            cyclicBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+        applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SONG));
     }
 
     @Override
     public void crawlSongs() {
-        long total =albumService.count();
-        if(total>0){
-            for(int i =0;i<total/PAGE_SIZE+1;i++){
-                List<AlbumRO> albumROS =albumService.pageAll(i+1,PAGE_SIZE);
-                SongTask songTask =applicationContext.getBean(SongTask.class);
-                songTask.setName("page"+(i+1));
-                songTask.setAlbumROList(albumROS);
-                songTask.doTask();
-            }
+        for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
+            SongTask songTask =applicationContext.getBean(SongTask.class,"SongTask"+i);
+            songTask.doTask();
         }
     }
 

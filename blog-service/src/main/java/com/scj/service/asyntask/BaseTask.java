@@ -16,7 +16,7 @@ public abstract class BaseTask {
 
     public static final String BASE_URL = "http://music.163.com";
 
-    public abstract  void doTask();
+    public abstract void doTask();
 
     public String getName() {
         return name;
