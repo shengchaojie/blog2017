@@ -7,6 +7,7 @@ import com.scj.service.music.AlbumService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -52,5 +53,13 @@ public class AlbumServiceImpl implements AlbumService{
     @Override
     public AlbumRO getAlbumById(Long id) {
         return albumMapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    public int updateCrawlTime(Long id, Date crawlTime) {
+        AlbumRO albumRO =new AlbumRO();
+        albumRO.setId(id);
+        albumRO.setCrawlTime(crawlTime);
+        return albumMapper.updateByPrimaryKeySelective(albumRO);
     }
 }

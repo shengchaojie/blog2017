@@ -7,6 +7,7 @@ import com.scj.dal.ro.music.WebPageRO;
 import com.scj.service.event.CrawlEvent;
 import com.scj.service.event.CrawlEventType;
 import com.scj.service.music.AlbumService;
+import com.scj.service.music.SingerService;
 import com.scj.service.music.WebPageService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -56,10 +57,10 @@ public class AlbumTask extends BaseTask{
     private AlbumService albumService;
 
     @Resource
-    private WebPageService webPageService;
+    private MusicTaskScheduler musicTaskScheduler;
 
     @Resource
-    private MusicTaskScheduler musicTaskScheduler;
+    private SingerService singerService;
 
     @Async("myTaskAsyncPool")
     public void doTask() {
@@ -70,28 +71,13 @@ public class AlbumTask extends BaseTask{
                 if (StringUtils.isEmpty(singerRO.getSingerUrl()) || !singerRO.getSingerUrl().contains("artist")) {
                     continue;
                 }
-                //缓存 先查看是否保存了这个html
-                //可以开定时任务清空这个缓存表
-                WebPageRO webPageRO = webPageService.findByIdAndType(singerRO.getId(), 0, WebPageEnum.SINGER);
-                Document document = null;
-                if (webPageRO != null) {
-                    document = Jsoup.parse(webPageRO.getWebpageContent());
-                } else {
-                    String albumUrl = singerRO.getSingerUrl().replace("artist", "artist/album");
-                    try {
-                        document = Jsoup.connect(albumUrl)
-                                //.proxy("127.0.0.1",1080)
-                                .get();
-                        webPageRO = new WebPageRO();
-                        webPageRO.setWebpageId(singerRO.getId());
-                        webPageRO.setWebpageType(WebPageEnum.SINGER);
-                        webPageRO.setCrawled(true);
-                        webPageRO.setCrawlTime(new Date());
-                        webPageRO.setWebpageContent(document.html());
-                        webPageService.add(webPageRO);
-                    } catch (IOException ex) {
-                        logger.error("记录下载webpage错误的url:{}", albumUrl, ex);
-                    }
+                String albumUrl = singerRO.getSingerUrl().replace("artist", "artist/album");
+                Document document =null;
+                try {
+                    document= Jsoup.connect(albumUrl).get();
+                } catch (IOException e) {
+                    logger.error("获取album页面错误,url:{}", albumUrl, e);
+                    continue;
                 }
 
                 boolean isHaveNext = true;
@@ -127,38 +113,26 @@ public class AlbumTask extends BaseTask{
                     if (!isHaveNext) {
                         break;
                     }
-                    webPageRO = webPageService.findByIdAndType(singerRO.getId(), index, WebPageEnum.SINGER);
-                    if (webPageRO != null) {
-                        document = Jsoup.parse(webPageRO.getWebpageContent());
-                    } else {
-                        String albumUrl = BASE_URL + nextPageEle.get(0).attr("href");
-                        try {
-                            document = Jsoup.connect(albumUrl)
-                                    //.proxy("127.0.0.1",1080)
-                                    .get();
-                            webPageRO = new WebPageRO();
-                            webPageRO.setWebpageId(singerRO.getId());
-                            webPageRO.setWebpageType(WebPageEnum.SINGER);
-                            webPageRO.setCrawled(true);
-                            webPageRO.setCrawlTime(new Date());
-                            webPageRO.setWebpageIndex(index);
-                            webPageRO.setWebpageContent(document.html());
-                            webPageService.add(webPageRO);
-                        } catch (IOException ex) {
-                            logger.error("记录下载webpage错误的url:{}", albumUrl, ex);
-                        }
+                    albumUrl = BASE_URL + nextPageEle.get(0).attr("href");
+                    try {
+                        document = Jsoup.connect(albumUrl).get();
+                    } catch (IOException e) {
+                        logger.error("获取album页面错误,url:{}", albumUrl, e);
+                        isHaveNext =false;
+                        continue;
                     }
+
                     index++;
                 }
                 if(!CollectionUtils.isEmpty(cachedAlbumList)){
                     albumService.batchAdd(cachedAlbumList);
-                    //这边不应该直接加入 应该在事件那边做控制 筛选出应该要爬的数据 再加入
-                    //musicTaskScheduler.putAlbumItems(cachedAlbumList);
                 }
-                // TODO: 2017/6/23 需要更新歌手的crawltime
+                //需要更新歌手的crawltime
+                singerService.updateCrawlTime(singerRO.getId(),new Date());
             }
         }
         try {
+            logger.info("等待其他album爬取线程结束");
             barrier.await();
         } catch (InterruptedException e) {
             e.printStackTrace();

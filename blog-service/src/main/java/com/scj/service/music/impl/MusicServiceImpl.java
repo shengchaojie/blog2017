@@ -1,41 +1,28 @@
 package com.scj.service.music.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.scj.common.enums.JobTypeEnum;
-import com.scj.common.threadpool.TaskExecutePool;
-import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.CrawlInfoRO;
 import com.scj.dal.ro.music.SingerRO;
-import com.scj.service.asyntask.AlbumTask;
-import com.scj.service.asyntask.CatalogTask;
-import com.scj.service.asyntask.SingerTask;
-import com.scj.service.asyntask.SongTask;
+import com.scj.service.asyntask.*;
 import com.scj.service.event.CrawlEvent;
 import com.scj.service.event.CrawlEventType;
-import com.scj.service.music.*;
-import com.scj.service.user.UserService;
-import com.sun.org.apache.bcel.internal.generic.BranchHandle;
-import com.sun.org.apache.xpath.internal.WhitespaceStrippingElementMatcher;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import com.scj.service.music.CrawlInfoService;
+import com.scj.service.music.MusicService;
+import com.scj.service.music.SingerService;
+import com.scj.service.query.SingerQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by Administrator on 2017/5/21 0021.
@@ -45,12 +32,22 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     private static final Logger logger = LoggerFactory.getLogger(MusicServiceImpl.class);
 
-    private static final Integer SINGER_TASK_THREAD_SIZE =3;
-
     private ApplicationContext applicationContext;
 
     @Resource
     private CrawlInfoService crawlInfoService;
+
+    @Resource
+    private SingerService singerService;
+
+    @Resource
+    private MusicTaskScheduler musicTaskScheduler;
+
+    @Value("${music.task.singer.thread}")
+    private Integer singerTaskThreadSize;
+
+    @Value("${music.task.singer.shard}")
+    private Integer singerTaskShardSize;
 
     @Override
     public void crawlCatalog() {
@@ -62,8 +59,8 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
     public void crawlAllSinger() {
         //这里基本的思路是 开启多个线程(可以配置)去爬取
         //然后爬取全部完毕后，在触发下一个任务
-        CyclicBarrier cyclicBarrier =new CyclicBarrier(SINGER_TASK_THREAD_SIZE+1);
-        for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
+        CyclicBarrier cyclicBarrier =new CyclicBarrier(singerTaskThreadSize+1);
+        for(int i =0;i<singerTaskThreadSize;i++){
             SingerTask singerTask =applicationContext.getBean(SingerTask.class,"singer"+i,cyclicBarrier);
             singerTask.doTask();
         }
@@ -81,6 +78,8 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
         logger.info("定时任务开始执行...");
         crawlAllSinger();
     }
+
+
 
     @Override
     public void crawlSingerAlbum() {
@@ -104,11 +103,28 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             crawlInfoRO.setValidDuration(30l);
             crawlInfoService.add(crawlInfoRO);
             //把需要重新爬取的数据加入
+            long count =singerService.count();
+            if(count>0){
+                for (int i=0;i<count/1000;i++){
+                    List<SingerRO> singerROList =singerService.pageAll(i+1,1000);
+                    musicTaskScheduler.putSingerItems(singerROList);
+                }
+            }
         }else{
-            //扫描需要爬取的数据加入到scheduler
+            //扫描需要爬取的数据 时间小于当前爬取任务时间
+            // 加入到scheduler
+            SingerQuery singerQuery =new SingerQuery();
+            singerQuery.setEndCrawlTime(crawlInfoRO.getCrawlTime());
+            long count =singerService.count(singerQuery);
+            if(count>0){
+                long size =(count+singerTaskShardSize-1)/singerTaskShardSize;
+                for(int i=0;i<size;i++){
+                    musicTaskScheduler.putSingerItems(singerService.pageAll(singerQuery,i+1,singerTaskShardSize));
+                }
+            }
         }
-        CyclicBarrier cyclicBarrier =new CyclicBarrier(SINGER_TASK_THREAD_SIZE+1);
-        for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
+        CyclicBarrier cyclicBarrier =new CyclicBarrier(singerTaskThreadSize+1);
+        for(int i =0;i<singerTaskThreadSize;i++){
             AlbumTask task = applicationContext.getBean(AlbumTask.class,"AlbumTask"+i,cyclicBarrier);
             task.doTask();
         }
@@ -124,7 +140,7 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     @Override
     public void crawlSongs() {
-        for(int i =0;i<SINGER_TASK_THREAD_SIZE;i++){
+        for(int i =0;i<singerTaskThreadSize;i++){
             SongTask songTask =applicationContext.getBean(SongTask.class,"SongTask"+i);
             songTask.doTask();
         }

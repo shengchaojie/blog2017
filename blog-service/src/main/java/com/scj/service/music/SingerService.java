@@ -1,7 +1,9 @@
 package com.scj.service.music;
 
 import com.scj.dal.ro.music.SingerRO;
+import com.scj.service.query.SingerQuery;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,4 +24,11 @@ public interface SingerService {
     int count();
 
     SingerRO getSingerNameById(Long id);
+
+    int count(SingerQuery singerQuery);
+
+    List<SingerRO> pageAll(SingerQuery singerQuery,int page,int pageSize);
+
+    int updateCrawlTime(Long id, Date date);
+
 }

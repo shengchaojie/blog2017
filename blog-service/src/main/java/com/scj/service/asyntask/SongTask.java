@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.scj.common.utils.NetEaseMusicAPI;
 import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.SongRO;
+import com.scj.service.music.AlbumService;
 import com.scj.service.music.SongService;
 import com.scj.service.music.WebPageService;
 import org.apache.commons.lang3.StringUtils;
@@ -39,11 +40,10 @@ public class SongTask extends BaseTask{
     private SongService songService;
 
     @Resource
-    private WebPageService webPageService;
-
-    @Resource
     private MusicTaskScheduler musicTaskScheduler;
 
+    @Resource
+    private AlbumService albumService;
 
     public SongTask() {
     }
@@ -101,7 +101,10 @@ public class SongTask extends BaseTask{
                 } catch (IOException e) {
                     logger.error("jsoup连接失败，url:{}", albumUrl, e);
                 }
+                //更新album的crawltime
+                albumService.updateCrawlTime(albumRO.getId(),new Date());
             }
+
         }
         logger.info("线程{}结束爬取歌曲",getName());
     }

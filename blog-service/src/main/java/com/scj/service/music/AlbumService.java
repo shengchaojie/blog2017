@@ -2,6 +2,7 @@ package com.scj.service.music;
 
 import com.scj.dal.ro.music.AlbumRO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,4 +22,6 @@ public interface AlbumService {
     long count();
 
     AlbumRO getAlbumById(Long id);
+
+    int updateCrawlTime(Long id , Date crawlTime);
 }

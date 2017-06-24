@@ -6,13 +6,16 @@ import com.google.common.collect.Lists;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.SongService;
+import com.scj.service.query.SingerQuery;
 import com.scj.web.Application;
-import org.apache.commons.lang3.CharSet;
-import org.apache.commons.lang3.CharSetUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.autoconfigure.security.FallbackWebSecurityAutoConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,6 +40,9 @@ public class SingerServiceTest {
 
     @Resource
     private SongService songService;
+
+    @Value("${test.field}")
+    private String testField;
 
     @Test
     @Rollback(false)
@@ -79,4 +85,17 @@ public class SingerServiceTest {
     public void testSetCommentCount(){
         songService.updateSongCommentCount(59867L,111L);
     }
+
+    @Test
+    public void testCountByExample(){
+        SingerQuery singerQuery =new SingerQuery();
+        singerQuery.setStartCrawlTime(DateTime.parse("2017-05-23 21:16:05", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toDate());
+        System.out.println(singerService.count(singerQuery));
+    }
+
+    @Test
+    public void testProperties(){
+        System.out.println(testField);
+    }
+
 }
