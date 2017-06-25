@@ -3,8 +3,12 @@ package com.scj.service.music.impl;
 import com.github.pagehelper.PageHelper;
 import com.scj.dal.mapper.music.AlbumMapper;
 import com.scj.dal.ro.music.AlbumRO;
+import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.music.AlbumService;
+import com.scj.service.query.AlbumQuery;
+import com.scj.service.query.SingerQuery;
 import org.springframework.stereotype.Service;
+import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -61,5 +65,28 @@ public class AlbumServiceImpl implements AlbumService{
         albumRO.setId(id);
         albumRO.setCrawlTime(crawlTime);
         return albumMapper.updateByPrimaryKeySelective(albumRO);
+    }
+
+    @Override
+    public long count(AlbumQuery albumQuery) {
+        return albumMapper.selectCountByExample(getExample(albumQuery));
+    }
+
+    @Override
+    public List<AlbumRO> pageAll(int page, int pageSize, AlbumQuery albumQuery) {
+        PageHelper.startPage(page,pageSize);
+        return albumMapper.selectByExample(getExample(albumQuery));
+    }
+
+    private Example getExample(AlbumQuery albumQuery) {
+        Example example =new Example(AlbumRO.class);
+        Example.Criteria criteria = example.createCriteria();
+        if(albumQuery.getStartCrawlTime()!=null){
+            criteria.andGreaterThanOrEqualTo("crawlTime",albumQuery.getStartCrawlTime());
+        }
+        if(albumQuery.getEndCrawlTime()!=null){
+            criteria.andLessThan("crawlTime",albumQuery.getEndCrawlTime());
+        }
+        return example;
     }
 }

@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Component
 @Scope("prototype")
-public class CatalogTask extends BaseTask{
+public class  CatalogTask extends BaseTask{
 
     private static final String SINGER_CATALOG_URL="http://music.163.com/discover/artist";
 
@@ -70,6 +70,9 @@ public class CatalogTask extends BaseTask{
                         musicTaskScheduler.putCatalogItems(ImmutableList.copyOf(catalogItems));
                         catalogItems.clear();
                     }
+                }
+                if(debug){
+                    break;
                 }
             }
             //这边开启爬取歌手的事件

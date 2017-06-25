@@ -18,6 +18,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
@@ -81,7 +82,6 @@ public class AlbumTask extends BaseTask{
                 }
 
                 boolean isHaveNext = true;
-                int index = 1;
                 List<AlbumRO> cachedAlbumList =new ArrayList<>();
                 while (isHaveNext) {
                     Elements currentAlbums = document.select("ul#m-song-module>li");
@@ -122,13 +122,23 @@ public class AlbumTask extends BaseTask{
                         continue;
                     }
 
-                    index++;
                 }
                 if(!CollectionUtils.isEmpty(cachedAlbumList)){
                     albumService.batchAdd(cachedAlbumList);
                 }
                 //需要更新歌手的crawltime
                 singerService.updateCrawlTime(singerRO.getId(),new Date());
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if(debug){
+                    break;
+                }
+            }
+            if(debug){
+                break;
             }
         }
         try {

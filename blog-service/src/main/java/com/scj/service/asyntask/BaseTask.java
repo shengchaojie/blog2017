@@ -1,5 +1,7 @@
 package com.scj.service.asyntask;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * Created by shengchaojie on 2017/5/23.
  */
@@ -9,6 +11,12 @@ public abstract class BaseTask {
 
     public BaseTask() {
     }
+
+    @Value("${music.sleepTime}")
+    protected Long sleepTime;
+
+    @Value("${music.debug}")
+    protected Boolean debug;
 
     public BaseTask(String name) {
         this.name = name;

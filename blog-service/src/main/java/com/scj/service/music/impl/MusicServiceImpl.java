@@ -1,14 +1,17 @@
 package com.scj.service.music.impl;
 
 import com.scj.common.enums.JobTypeEnum;
+import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.CrawlInfoRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.service.asyntask.*;
 import com.scj.service.event.CrawlEvent;
 import com.scj.service.event.CrawlEventType;
+import com.scj.service.music.AlbumService;
 import com.scj.service.music.CrawlInfoService;
 import com.scj.service.music.MusicService;
 import com.scj.service.music.SingerService;
+import com.scj.service.query.AlbumQuery;
 import com.scj.service.query.SingerQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +46,20 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
     @Resource
     private MusicTaskScheduler musicTaskScheduler;
 
+    @Resource
+    private AlbumService albumService;
+
     @Value("${music.task.singer.thread}")
     private Integer singerTaskThreadSize;
 
     @Value("${music.task.singer.shard}")
     private Integer singerTaskShardSize;
+
+    @Value("${music.task.album.thread}")
+    private Integer albumTaskThreadSize;
+
+    @Value("${music.task.album.shard}")
+    private Integer albumTaskShardSize;
 
     @Override
     public void crawlCatalog() {
@@ -57,8 +69,6 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     @Override
     public void crawlAllSinger() {
-        //这里基本的思路是 开启多个线程(可以配置)去爬取
-        //然后爬取全部完毕后，在触发下一个任务
         CyclicBarrier cyclicBarrier =new CyclicBarrier(singerTaskThreadSize+1);
         for(int i =0;i<singerTaskThreadSize;i++){
             SingerTask singerTask =applicationContext.getBean(SingerTask.class,"singer"+i,cyclicBarrier);
@@ -85,17 +95,10 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
     public void crawlSingerAlbum() {
         //这里需要对上次的爬取事件进行判断，如果超过间隔，重新爬
         CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.SINGER);
-        boolean isNeedAllCrawled =false;
-        if(crawlInfoRO==null){
-            isNeedAllCrawled =true;
-        }else{
-            long endTime =crawlInfoRO.getCrawlTime().getTime()+crawlInfoRO.getValidDuration()*24*60*60;
-            //当前时间已经超过数据的有效时间
-            if(endTime-new Date().getTime()>0){
-                isNeedAllCrawled =true;
+        if(isNeedAllCrawled(crawlInfoRO)){
+            if(crawlInfoRO!=null){
+                crawlInfoService.delete(crawlInfoRO.getId());
             }
-        }
-        if(isNeedAllCrawled){
             crawlInfoRO =new CrawlInfoRO();
             crawlInfoRO.setCrawlTime(new Date());
             crawlInfoRO.setDeleted(false);
@@ -105,7 +108,8 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             //把需要重新爬取的数据加入
             long count =singerService.count();
             if(count>0){
-                for (int i=0;i<count/1000;i++){
+                long size =(count+singerTaskShardSize-1)/singerTaskShardSize;
+                for (int i=0;i<size;i++){
                     List<SingerRO> singerROList =singerService.pageAll(i+1,1000);
                     musicTaskScheduler.putSingerItems(singerROList);
                 }
@@ -138,9 +142,56 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
         applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SONG));
     }
 
+    private boolean isNeedAllCrawled(CrawlInfoRO crawlInfoRO) {
+        boolean isNeedAllCrawled =false;
+        if(crawlInfoRO==null){
+            isNeedAllCrawled =true;
+        }else{
+            long endTime =crawlInfoRO.getCrawlTime().getTime()+crawlInfoRO.getValidDuration()*24*60*60;
+            //当前时间已经超过数据的有效时间
+            if(endTime-new Date().getTime()<0){
+                isNeedAllCrawled =true;
+            }
+        }
+        return isNeedAllCrawled;
+    }
+
     @Override
     public void crawlSongs() {
-        for(int i =0;i<singerTaskThreadSize;i++){
+        CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.ALBUM);
+        if(isNeedAllCrawled(crawlInfoRO)){
+            if(crawlInfoRO!=null){
+                crawlInfoService.delete(crawlInfoRO.getId());
+            }
+            crawlInfoRO =new CrawlInfoRO();
+            crawlInfoRO.setCrawlTime(new Date());
+            crawlInfoRO.setDeleted(false);
+            crawlInfoRO.setJobType(JobTypeEnum.ALBUM);
+            crawlInfoRO.setValidDuration(30L);
+            crawlInfoService.add(crawlInfoRO);
+            //把需要重新爬取的数据加入
+            long count =albumService.count();
+            if(count>0){
+                long size =(count+albumTaskShardSize-1)/albumTaskShardSize;
+                for (int i=0;i<size;i++){
+                    List<AlbumRO> albumROList =albumService.pageAll(i+1,1000);
+                    musicTaskScheduler.putAlbumItems(albumROList);
+                }
+            }
+        }else{
+            //扫描需要爬取的数据 时间小于当前爬取任务时间
+            // 加入到scheduler
+            AlbumQuery albumQuery =new AlbumQuery();
+            albumQuery.setEndCrawlTime(crawlInfoRO.getCrawlTime());
+            long count =albumService.count(albumQuery);
+            if(count>0){
+                long size =(count+albumTaskShardSize-1)/albumTaskShardSize;
+                for(int i=0;i<size;i++){
+                    musicTaskScheduler.putAlbumItems(albumService.pageAll(i+1,albumTaskShardSize,albumQuery));
+                }
+            }
+        }
+        for(int i =0;i<albumTaskThreadSize;i++){
             SongTask songTask =applicationContext.getBean(SongTask.class,"SongTask"+i);
             songTask.doTask();
         }

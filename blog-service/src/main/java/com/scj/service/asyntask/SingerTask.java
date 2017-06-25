@@ -11,6 +11,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
@@ -35,8 +36,6 @@ public class SingerTask extends BaseTask{
 
     private static final Logger logger = LoggerFactory.getLogger(SingerTask.class);
 
-    private static final Integer SLEEP_TIME =5;
-
     @Resource
     private SingerService singerService;
 
@@ -56,10 +55,7 @@ public class SingerTask extends BaseTask{
     @Override
     @Async("myTaskAsyncPool")
     public void doTask() {
-        logger.info("爬取歌手任务开始");
-        //boolean isNeedCrawl = false;//做成全局配置
-        //获取刷新配置 如果不存在配置一条
-        //这一块数据量比较小 一个月刷新一次
+        logger.info("线程:{},爬取歌手任务开始",getName());
         List<MusicServiceImpl.CatalogItem> catalogItems = null;
         while ((catalogItems = musicTaskScheduler.takeCatalogItems()) != null) {
             for (MusicServiceImpl.CatalogItem catalogItem : catalogItems) {
@@ -95,15 +91,20 @@ public class SingerTask extends BaseTask{
                     }
                     if (!CollectionUtils.isEmpty(singerROS)) {
                         singerService.batchAdd(singerROS);
-                        musicTaskScheduler.putSingerItems(singerROS);
                         logger.info("爬取{}首歌手",singerROS.size());
                     }
-                    Thread.sleep(SLEEP_TIME);
+                    Thread.sleep(sleepTime);
                 } catch (IOException ex) {
                     logger.error("爬取歌手出现异常,url:{}", catalogItem.getUrl(), ex);
                 } catch (InterruptedException e) {
                     logger.error("爬取歌手线程休眠被打断",e);
                 }
+                if(debug){
+                    break;
+                }
+            }
+            if(debug){
+                break;
             }
         }
         try {
@@ -116,15 +117,4 @@ public class SingerTask extends BaseTask{
         logger.info("线程:{}爬取歌手任务结束,开启爬专辑任务",getName());
     }
 
-    public SingerService getSingerService() {
-        return singerService;
-    }
-
-    public void setSingerService(SingerService singerService) {
-        this.singerService = singerService;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new DateTime());
-    }
 }

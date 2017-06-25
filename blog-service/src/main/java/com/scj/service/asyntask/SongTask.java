@@ -14,6 +14,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -65,8 +66,6 @@ public class SongTask extends BaseTask{
                     Elements songs = albumDoc.select("ul.f-hide li a");
                     List<SongRO> songROList = new ArrayList<>();
                     for (Element song : songs) {
-                        //String url =BASE_URL+song.attr("href");
-                        //System.out.println(song.html()+" "+url+" "+crawlAlbumSongCommentCount(url));
                         String songUrl = BASE_URL + song.attr("href");
                         Long songId = Long.parseLong(songUrl.substring(songUrl.indexOf("id=") + 3));
                         if (!songUrl.contains("id=")) {
@@ -103,6 +102,17 @@ public class SongTask extends BaseTask{
                 }
                 //更新album的crawltime
                 albumService.updateCrawlTime(albumRO.getId(),new Date());
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if(debug){
+                    break;
+                }
+            }
+            if(debug){
+                break;
             }
 
         }
@@ -128,6 +138,7 @@ public class SongTask extends BaseTask{
                 return;
             }
             String dataTId =countElement.get(0).attr("data-tid");
+            //这个接口还能拿到评论信息
             String response = NetEaseMusicAPI.sendPostRequest("http://music.163.com/weapi/v1/resource/comments/"+dataTId+"?csrf_token=",
                     NetEaseMusicAPI.encryptedRequest(NetEaseMusicAPI.noLoginJson));
             if(!StringUtils.isEmpty(response)){
@@ -138,15 +149,16 @@ public class SongTask extends BaseTask{
             }else {
                 songRO.setCommentCount(0L);
             }
-            //拿评论 通过页面抓取 无效 是通过接口渲染出来的
-            /*Elements countElement = songDetailDoc.select("div.u-title.u-title-1 span.sub.s-fc3 span.j-flag");
-            String count =countElement.html();
-            songRO.setCommentCount(Long.parseLong(count));*/
         } catch (IOException e) {
             logger.error("爬虫框架出现异常",e);
         }
     }
 
+    /**
+     * 通过调用接口的形式 拿评论数
+     * @param songDetailUrl
+     * @return
+     */
     private Long crawlSongCommentCount(String songDetailUrl){
         try {
             Document songDetailDoc = Jsoup.connect(songDetailUrl).get();

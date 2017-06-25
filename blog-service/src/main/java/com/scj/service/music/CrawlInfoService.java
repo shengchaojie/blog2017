@@ -14,4 +14,6 @@ public interface CrawlInfoService {
     CrawlInfoRO get(JobTypeEnum jobTypeEnum);
 
     void delete(Long id);
+
+    boolean add(JobTypeEnum jobTypeEnum,Date crawlTime,Long validDuration);
 }

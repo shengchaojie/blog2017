@@ -9,6 +9,7 @@ import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,5 +45,15 @@ public class CrawlInfoServiceImpl implements CrawlInfoService{
         crawlInfoRO.setId(id);
         crawlInfoRO.setDeleted(true);
         crawlInfoMapper.updateByPrimaryKeySelective(crawlInfoRO);
+    }
+
+    @Override
+    public boolean add(JobTypeEnum jobTypeEnum, Date crawlTime, Long validDuration) {
+        CrawlInfoRO crawlInfoRO =new CrawlInfoRO();
+        crawlInfoRO.setJobType(jobTypeEnum);
+        crawlInfoRO.setCrawlTime(crawlTime);
+        crawlInfoRO.setValidDuration(validDuration);
+        crawlInfoRO.setDeleted(false);
+        return crawlInfoMapper.insert(crawlInfoRO) >0;
     }
 }
