@@ -89,6 +89,8 @@ public class SongTask extends BaseTask{
                         songRO.setSongDownloadUrl("");//调用其他接口
                         songRO.setSongUrl(songUrl);
                         songRO.setSongName(song.html());
+                        songRO.setCreateTime(new Date());
+                        songRO.setUpdateTime(new Date());
                         crawlAlbumSongCommentCount(songRO, songUrl);//爬取歌曲评论数 和 封面url
                         songROList.add(songRO);
                     }

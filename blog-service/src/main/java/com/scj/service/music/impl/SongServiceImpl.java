@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -62,6 +63,7 @@ public class SongServiceImpl implements SongService{
         SongRO songRO =new SongRO();
         songRO.setId(id);
         songRO.setCommentCount(count);
+        songRO.setUpdateTime(new Date());
         return songMapper.updateByPrimaryKeySelective(songRO);
     }
 
@@ -80,6 +82,7 @@ public class SongServiceImpl implements SongService{
         SongRO songRO =new SongRO();
         songRO.setId(id);
         songRO.setSingerId(singerId);
+        songRO.setUpdateTime(new Date());
         return songMapper.updateByPrimaryKeySelective(songRO);
     }
 }

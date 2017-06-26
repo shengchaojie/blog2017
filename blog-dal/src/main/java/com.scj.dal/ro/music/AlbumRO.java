@@ -24,6 +24,10 @@ public class AlbumRO extends BaseRO{
 
     private Date crawlTime;
 
+    private Date updateTime;
+
+    private String publishTime;
+
     public String getAlbumName() {
         return albumName;
     }
@@ -70,5 +74,21 @@ public class AlbumRO extends BaseRO{
 
     public void setCrawlTime(Date crawlTime) {
         this.crawlTime = crawlTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getPublishTime() {
+        return publishTime;
+    }
+
+    public void setPublishTime(String publishTime) {
+        this.publishTime = publishTime;
     }
 }

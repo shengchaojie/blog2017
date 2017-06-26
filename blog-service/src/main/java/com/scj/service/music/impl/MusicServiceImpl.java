@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
 /**
@@ -63,23 +64,43 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     @Override
     public void crawlCatalog() {
-        CatalogTask catalogTask =applicationContext.getBean(CatalogTask.class);
-        catalogTask.doTask();
+        CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.SINGER);
+        if(isNeedAllCrawled(crawlInfoRO)){
+            CountDownLatch countDownLatch =new CountDownLatch(1);
+            CatalogTask catalogTask =applicationContext.getBean(CatalogTask.class,countDownLatch);
+            catalogTask.doTask();
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SINGER));
     }
 
     @Override
     public void crawlAllSinger() {
-        CyclicBarrier cyclicBarrier =new CyclicBarrier(singerTaskThreadSize+1);
-        for(int i =0;i<singerTaskThreadSize;i++){
-            SingerTask singerTask =applicationContext.getBean(SingerTask.class,"singer"+i,cyclicBarrier);
-            singerTask.doTask();
-        }
-        try {
-            cyclicBarrier.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (BrokenBarrierException e) {
-            e.printStackTrace();
+        //判断是否需要进行歌手的爬取
+        //这边都是全量的
+        CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.SINGER);
+        if(isNeedAllCrawled(crawlInfoRO)){
+            //如果是过期的话 删除过期的
+            if(crawlInfoRO!=null){
+                crawlInfoService.delete(crawlInfoRO.getId());
+            }
+            crawlInfoService.add(JobTypeEnum.SINGER,new Date(),30L);
+            CyclicBarrier cyclicBarrier =new CyclicBarrier(singerTaskThreadSize+1);
+            for(int i =0;i<singerTaskThreadSize;i++){
+                SingerTask singerTask =applicationContext.getBean(SingerTask.class,"singer"+i,cyclicBarrier);
+                singerTask.doTask();
+            }
+            try {
+                cyclicBarrier.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
+            }
         }
         applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_ALBUM));
     }
@@ -96,7 +117,7 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
         //这里需要对上次的爬取事件进行判断，如果超过间隔，重新爬
         CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.SINGER);
         if(isNeedAllCrawled(crawlInfoRO)){
-            if(crawlInfoRO!=null){
+            /*if(crawlInfoRO!=null){
                 crawlInfoService.delete(crawlInfoRO.getId());
             }
             crawlInfoRO =new CrawlInfoRO();
@@ -104,7 +125,7 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             crawlInfoRO.setDeleted(false);
             crawlInfoRO.setJobType(JobTypeEnum.SINGER);
             crawlInfoRO.setValidDuration(30l);
-            crawlInfoService.add(crawlInfoRO);
+            crawlInfoService.add(crawlInfoRO);*/
             //把需要重新爬取的数据加入
             long count =singerService.count();
             if(count>0){

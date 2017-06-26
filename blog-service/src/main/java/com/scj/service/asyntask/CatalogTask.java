@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by shengchaojie on 2017/6/22.
@@ -35,6 +36,15 @@ public class  CatalogTask extends BaseTask{
     private static final Integer PAGE_SIZE =2;
 
     private static final Logger logger = LoggerFactory.getLogger(CatalogTask.class);
+
+    private CountDownLatch countDownLatch;
+
+    public CatalogTask() {
+    }
+
+    public CatalogTask(CountDownLatch countDownLatch) {
+        this.countDownLatch = countDownLatch;
+    }
 
     @Resource
     private MusicTaskScheduler musicTaskScheduler;
@@ -76,9 +86,10 @@ public class  CatalogTask extends BaseTask{
                 }
             }
             //这边开启爬取歌手的事件
-            applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SINGER));
+            //applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SINGER));
         }catch (IOException ex){
             logger.error("爬取歌手清单出现异常",ex);
         }
+        countDownLatch.countDown();
     }
 }

@@ -103,9 +103,11 @@ public class AlbumTask extends BaseTask{
                         albumRO.setAlbumUrl(url);
                         albumRO.setSingerId(singerRO.getId());
                         albumRO.setImgUrl(imgUrl);
-                        albumRO.setCrawlTime(new Date());
+                        albumRO.setCrawlTime(DateTime.parse("1992-05-25", DateTimeFormat.forPattern("yyyy-MM-dd")).toDate());
+                        albumRO.setCreateTime(new Date());
+                        albumRO.setUpdateTime(new Date());
                         String createTimeString = album.select("p>span.s-fc3").html();
-                        albumRO.setCreateTime(DateTime.parse(createTimeString, DateTimeFormat.forPattern("yyyy.MM.dd")).toDate());
+                        albumRO.setPublishTime(createTimeString);
                         cachedAlbumList.add(albumRO);
                     }
                     Elements nextPageEle = document.select("div.u-page>.znxt");
@@ -125,6 +127,7 @@ public class AlbumTask extends BaseTask{
                 }
                 if(!CollectionUtils.isEmpty(cachedAlbumList)){
                     albumService.batchAdd(cachedAlbumList);
+                    logger.info("线程{},爬取了{}个专辑",getName(),cachedAlbumList.size());
                 }
                 //需要更新歌手的crawltime
                 singerService.updateCrawlTime(singerRO.getId(),new Date());

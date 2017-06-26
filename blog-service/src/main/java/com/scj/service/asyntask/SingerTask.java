@@ -6,6 +6,7 @@ import com.scj.service.event.CrawlEventType;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.impl.MusicServiceImpl;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -21,6 +22,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -79,14 +81,15 @@ public class SingerTask extends BaseTask{
                             //这边的数据很固定 不做更新处理
                             continue;
                         }
-
                         //插入数据到数据库
                         SingerRO singerRO = new SingerRO();
                         singerRO.setId(Long.parseLong(singerId));
                         singerRO.setSingerName(singerName);
                         singerRO.setSingerUrl(BASE_URL + url);
                         singerRO.setFirstLetter(catalogItem.getFirstLetter());
-                        singerRO.setCrawlTime(new Date());
+                        singerRO.setCrawlTime(DateTime.parse("1992-05-25", DateTimeFormat.forPattern("yyyy-MM-dd")).toDate());
+                        singerRO.setCreateTime(new Date());
+                        singerRO.setUpdateTime(new Date());
                         singerROS.add(singerRO);
                     }
                     if (!CollectionUtils.isEmpty(singerROS)) {

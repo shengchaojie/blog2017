@@ -21,6 +21,10 @@ public class SingerRO extends BaseRO{
 
     private Date crawlTime;
 
+    private Date createTime;
+
+    private Date updateTime;
+
     public String getSingerName() {
         return singerName;
     }
@@ -59,5 +63,21 @@ public class SingerRO extends BaseRO{
 
     public void setCrawlTime(Date crawlTime) {
         this.crawlTime = crawlTime;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }
