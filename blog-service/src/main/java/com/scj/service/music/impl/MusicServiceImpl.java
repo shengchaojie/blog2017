@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -117,15 +119,6 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
         //这里需要对上次的爬取事件进行判断，如果超过间隔，重新爬
         CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.SINGER);
         if(isNeedAllCrawled(crawlInfoRO)){
-            /*if(crawlInfoRO!=null){
-                crawlInfoService.delete(crawlInfoRO.getId());
-            }
-            crawlInfoRO =new CrawlInfoRO();
-            crawlInfoRO.setCrawlTime(new Date());
-            crawlInfoRO.setDeleted(false);
-            crawlInfoRO.setJobType(JobTypeEnum.SINGER);
-            crawlInfoRO.setValidDuration(30l);
-            crawlInfoService.add(crawlInfoRO);*/
             //把需要重新爬取的数据加入
             long count =singerService.count();
             if(count>0){
@@ -163,20 +156,6 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
         applicationContext.publishEvent(new CrawlEvent(CrawlEventType.START_CRAWL_SONG));
     }
 
-    private boolean isNeedAllCrawled(CrawlInfoRO crawlInfoRO) {
-        boolean isNeedAllCrawled =false;
-        if(crawlInfoRO==null){
-            isNeedAllCrawled =true;
-        }else{
-            long endTime =crawlInfoRO.getCrawlTime().getTime()+crawlInfoRO.getValidDuration()*24*60*60;
-            //当前时间已经超过数据的有效时间
-            if(endTime-new Date().getTime()<0){
-                isNeedAllCrawled =true;
-            }
-        }
-        return isNeedAllCrawled;
-    }
-
     @Override
     public void crawlSongs() {
         CrawlInfoRO crawlInfoRO =crawlInfoService.get(JobTypeEnum.ALBUM);
@@ -184,12 +163,7 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             if(crawlInfoRO!=null){
                 crawlInfoService.delete(crawlInfoRO.getId());
             }
-            crawlInfoRO =new CrawlInfoRO();
-            crawlInfoRO.setCrawlTime(new Date());
-            crawlInfoRO.setDeleted(false);
-            crawlInfoRO.setJobType(JobTypeEnum.ALBUM);
-            crawlInfoRO.setValidDuration(30L);
-            crawlInfoService.add(crawlInfoRO);
+            crawlInfoService.add(JobTypeEnum.ALBUM,new Date(),30L);
             //把需要重新爬取的数据加入
             long count =albumService.count();
             if(count>0){
@@ -216,6 +190,20 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             SongTask songTask =applicationContext.getBean(SongTask.class,"SongTask"+i);
             songTask.doTask();
         }
+    }
+
+    private boolean isNeedAllCrawled(CrawlInfoRO crawlInfoRO) {
+        boolean isNeedAllCrawled =false;
+        if(crawlInfoRO==null){
+            isNeedAllCrawled =true;
+        }else{
+            long endTime =crawlInfoRO.getCrawlTime().getTime()+crawlInfoRO.getValidDuration()*24*60*60*1000;
+            //当前时间已经超过数据的有效时间
+            if(endTime-new Date().getTime()<0){
+                isNeedAllCrawled =true;
+            }
+        }
+        return isNeedAllCrawled;
     }
 
     public static void main(String[] args) {

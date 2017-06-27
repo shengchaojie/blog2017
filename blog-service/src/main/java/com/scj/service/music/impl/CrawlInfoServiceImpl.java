@@ -5,6 +5,8 @@ import com.scj.dal.mapper.music.CrawlInfoMapper;
 import com.scj.dal.ro.music.CrawlInfoRO;
 import com.scj.service.music.CrawlInfoService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import tk.mybatis.mapper.entity.Example;
 
@@ -22,6 +24,7 @@ public class CrawlInfoServiceImpl implements CrawlInfoService{
     private CrawlInfoMapper crawlInfoMapper;
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean add(CrawlInfoRO crawlInfoRO) {
         return crawlInfoMapper.insert(crawlInfoRO) >0;
     }
@@ -40,6 +43,7 @@ public class CrawlInfoServiceImpl implements CrawlInfoService{
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         CrawlInfoRO crawlInfoRO =new CrawlInfoRO();
         crawlInfoRO.setId(id);
@@ -48,6 +52,7 @@ public class CrawlInfoServiceImpl implements CrawlInfoService{
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean add(JobTypeEnum jobTypeEnum, Date crawlTime, Long validDuration) {
         CrawlInfoRO crawlInfoRO =new CrawlInfoRO();
         crawlInfoRO.setJobType(jobTypeEnum);
