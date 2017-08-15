@@ -18,9 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.jws.WebResult;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +39,9 @@ public class FileUploadController {
 
     @Value("${upload.folder}")
     private String uploadFolder;
+
+    @Value("${upload.url}")
+    private String preUrl;
 
     @Resource
     private UploadService uploadService;
@@ -79,14 +83,62 @@ public class FileUploadController {
         }
 
         UploadInfoRo uploadInfoRo =new UploadInfoRo();
-        uploadInfoRo.setUrl(relativePath);
+        uploadInfoRo.setUrl(preUrl+relativePath);
         uploadInfoRo.setDescription(description);
         uploadInfoRo.setOriginName(fileName);
         uploadInfoRo.setUploadTime(new Date());
         uploadInfoRo.setUploadPerson("scj");
         uploadService.addUploadInfo(uploadInfoRo);
 
-        return new ResponseResult<>(StatusCode.OK);
+        return new ResponseResult<>(StatusCode.OK,relativePath+relativePath);
+    }
+
+    @RequestMapping(value = "/img/uploadUrl",method = RequestMethod.POST)
+    public ResponseResult<String> uploadImgUrl(@RequestParam("url")String urlString,@RequestParam("description") String description)  {
+
+        String suffix =urlString.substring(urlString.lastIndexOf(".")+1,urlString.length());
+        //判断是否是图片
+        if(!imgSuffix.contains(suffix.toLowerCase())){
+            return new ResponseResult<>(StatusCode.NOT_IMAGE_FORMAT);
+        }
+        String dateFormat = DateTime.now().toString("/yyyy/MM/dd");
+        File desFolder =new File(uploadFolder+dateFormat);
+        if(!desFolder.exists()){
+            desFolder.mkdirs();
+        }
+        String relativePath = dateFormat+"/"+ UUID.randomUUID()+"."+suffix;
+        String outputFileName =uploadFolder+relativePath;
+        FileOutputStream fos = null;
+        InputStream is =null;
+        byte[] buffer = new byte[1024];
+        try {
+            URL url = new URL(urlString);
+            is = url.openStream();
+            fos =new FileOutputStream(outputFileName);
+            int size =0;
+            while ((size =is.read(buffer))>0){
+                fos.write(buffer,0,size);
+            }
+        } catch (MalformedURLException e) {
+            logger.error("url格式有问题",e);
+            return new ResponseResult<>(StatusCode.NOT_IMAGE_FORMAT);
+        } catch (IOException e) {
+            logger.error("IO出现异常",e);
+            return new ResponseResult<>(StatusCode.FAILED);
+        }finally {
+            IOUtils.close(fos);
+            IOUtils.close(is);
+        }
+
+        UploadInfoRo uploadInfoRo =new UploadInfoRo();
+        uploadInfoRo.setUrl(relativePath);
+        uploadInfoRo.setDescription(description);
+        uploadInfoRo.setOriginName(urlString);
+        uploadInfoRo.setUploadTime(new Date());
+        uploadInfoRo.setUploadPerson("scj");
+        uploadService.addUploadInfo(uploadInfoRo);
+
+        return new ResponseResult<>(StatusCode.OK,relativePath);
     }
 
     @RequestMapping(value = "/img/upload/list",method = RequestMethod.POST)
