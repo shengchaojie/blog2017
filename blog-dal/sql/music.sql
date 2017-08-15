@@ -94,5 +94,13 @@ CREATE TABLE `user_info` (
   KEY `FKn8pl63y4abe7n0ls6topbqjh2` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
-
+CREATE TABLE `upload_info` (
+   `id` int(11) NOT NULL AUTO_INCREMENT,
+   `origin_name` varchar(200) DEFAULT NULL,
+   `url` varchar(400) DEFAULT NULL,
+   `upload_time` datetime DEFAULT NULL,
+   `upload_person` varchar(45) DEFAULT NULL,
+   `description` varchar(200) DEFAULT NULL,
+   PRIMARY KEY (`id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
