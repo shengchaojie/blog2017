@@ -90,7 +90,7 @@ public class FileUploadController {
         uploadInfoRo.setUploadPerson("scj");
         uploadService.addUploadInfo(uploadInfoRo);
 
-        return new ResponseResult<>(StatusCode.OK,relativePath+relativePath);
+        return new ResponseResult<>(StatusCode.OK,preUrl+relativePath);
     }
 
     @RequestMapping(value = "/img/uploadUrl",method = RequestMethod.POST)

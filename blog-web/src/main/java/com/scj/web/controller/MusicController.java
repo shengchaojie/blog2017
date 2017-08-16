@@ -74,8 +74,8 @@ public class MusicController {
                 if(albumRO!=null){
                     songVO.setAlbumName(albumRO.getAlbumName());
                     if(albumRO.getCreateTime()!=null){
-                        SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd");
-                        songVO.setCreateTime(sdf.format(albumRO.getPublishTime()));
+                        //SimpleDateFormat sdf =new SimpleDateFormat("yyyy-MM-dd");
+                        songVO.setCreateTime(albumRO.getPublishTime());
                     }
                 }
                 SingerRO singerRO =singerService.getSingerNameById(songRO.getSingerId());
