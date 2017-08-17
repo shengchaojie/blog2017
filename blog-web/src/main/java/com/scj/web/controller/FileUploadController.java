@@ -60,7 +60,7 @@ public class FileUploadController {
 
         String suffix =fileName.substring(fileName.lastIndexOf(".")+1,fileName.length());
         //判断是否是图片
-        if(!imgSuffix.contains(suffix.toLowerCase())){
+        if(StringUtils.isEmpty(suffix)||!imgSuffix.contains(suffix.trim().toLowerCase())){
             return new ResponseResult<>(StatusCode.NOT_IMAGE_FORMAT);
         }
 
@@ -98,7 +98,7 @@ public class FileUploadController {
 
         String suffix =urlString.substring(urlString.lastIndexOf(".")+1,urlString.length());
         //判断是否是图片
-        if(!imgSuffix.contains(suffix.toLowerCase())){
+        if(StringUtils.isEmpty(suffix)||!imgSuffix.contains(suffix.trim().toLowerCase())){
             return new ResponseResult<>(StatusCode.NOT_IMAGE_FORMAT);
         }
         String dateFormat = DateTime.now().toString("/yyyy/MM/dd");
@@ -131,14 +131,14 @@ public class FileUploadController {
         }
 
         UploadInfoRo uploadInfoRo =new UploadInfoRo();
-        uploadInfoRo.setUrl(relativePath);
+        uploadInfoRo.setUrl(preUrl+relativePath);
         uploadInfoRo.setDescription(description);
         uploadInfoRo.setOriginName(urlString);
         uploadInfoRo.setUploadTime(new Date());
         uploadInfoRo.setUploadPerson("scj");
         uploadService.addUploadInfo(uploadInfoRo);
 
-        return new ResponseResult<>(StatusCode.OK,relativePath);
+        return new ResponseResult<>(StatusCode.OK,preUrl+relativePath);
     }
 
     @RequestMapping(value = "/img/upload/list",method = RequestMethod.POST)
