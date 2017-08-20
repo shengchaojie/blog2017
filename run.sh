@@ -1,6 +1,6 @@
 #!/bin/bash
-pid = ps -ef|grep blog-web |grep -v grep |awk '{print $2}'
-kill -9 $pid
+pid= ps -ef|grep blog-web |grep -v grep |awk '{print $2}'
+kill  $pid
 echo "killed $pid"
 cd /home/scj/workspace/blog2017
 git pull
