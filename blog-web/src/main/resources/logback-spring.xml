@@ -79,12 +79,14 @@
     </appender>
 
     <root level="INFO">
+<!--
         <appender-ref ref="console"/>
+-->
         <appender-ref ref="file"/>
         <appender-ref ref="file-error"/>
     </root>
 
-    <logger name="com.scj.dal.mapper" addtivity="true" level="debug">
+    <logger name="com.scj.dal.mapper" addtivity="true" level="info">
         <appender-ref ref="file-error"/>
         <appender-ref ref="file-mapper"/>
     </logger>
