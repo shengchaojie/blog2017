@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration scan="true" scanPeriod="60 seconds" debug="true">
     <property name="appName" value="blog2017"/>
-    <property name="log.path" value="/var/log/${appName}"/>
+    <property name="log.path" value="/data/logs/${appName}"/>
     <contextName>${appName}</contextName>
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
