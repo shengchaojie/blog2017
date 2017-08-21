@@ -10,7 +10,7 @@
         </encoder>
     </appender>
 
-    <springProfile name ="prod">
+    <springProfile name ="prd">
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.path}/logback.log</file>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
