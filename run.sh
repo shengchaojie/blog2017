@@ -1,6 +1,6 @@
 #!/bin/bash
 pid=`ps -ef|grep blog.jar |grep -v grep |awk '{print $2}'`
-if (($pid >0))
+if [ -n "$pid" ]
 then
 echo "pid is $pid"
 kill  $pid
