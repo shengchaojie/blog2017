@@ -2,7 +2,7 @@
 pid=`ps -ef|grep blog.jar |grep -v grep |awk '{print $2}'`
 if (($pid >0))
 then
-echo 'pid is $pid'
+echo "pid is $pid"
 kill  $pid
 echo "killed $pid"
 else
