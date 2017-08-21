@@ -4,7 +4,9 @@ import com.alibaba.fastjson.util.IOUtils;
 import com.google.common.collect.Sets;
 import com.scj.common.Page;
 import com.scj.common.ResponseResult;
+import com.scj.common.exception.BusinessException;
 import com.scj.common.exception.StatusCode;
+import com.scj.common.utils.ImageUtil;
 import com.scj.dal.ro.upload.UploadInfoRo;
 import com.scj.service.upload.UploadService;
 import com.scj.web.query.UploadImageQuery;
@@ -96,26 +98,36 @@ public class FileUploadController {
     @RequestMapping(value = "/img/uploadUrl",method = RequestMethod.POST)
     public ResponseResult<String> uploadImgUrl(@RequestParam("url")String urlString,@RequestParam("description") String description)  {
 
-        String suffix =urlString.substring(urlString.lastIndexOf(".")+1,urlString.length());
+        /*String suffix =urlString.substring(urlString.lastIndexOf(".")+1,urlString.length());
         //判断是否是图片
         if(StringUtils.isEmpty(suffix)||!imgSuffix.contains(suffix.trim().toLowerCase())){
             return new ResponseResult<>(StatusCode.NOT_IMAGE_FORMAT);
-        }
+        }*/
+
         String dateFormat = DateTime.now().toString("/yyyy/MM/dd");
         File desFolder =new File(uploadFolder+dateFormat);
         if(!desFolder.exists()){
             desFolder.mkdirs();
         }
-        String relativePath = dateFormat+"/"+ UUID.randomUUID()+"."+suffix;
-        String outputFileName =uploadFolder+relativePath;
+        String relativePath =null;
         FileOutputStream fos = null;
         InputStream is =null;
         byte[] buffer = new byte[1024];
         try {
             URL url = new URL(urlString);
-            is = url.openStream();
-            fos =new FileOutputStream(outputFileName);
+            is =  url.openStream();
+            //判断文件流是否为图片
             int size =0;
+            size =is.read(buffer);
+            String suffix = ImageUtil.isImage(buffer);
+            if(StringUtils.isEmpty(suffix)){
+                throw  new BusinessException(StatusCode.NOT_IMAGE_FORMAT);
+            }
+            relativePath = dateFormat+"/"+ UUID.randomUUID()+"."+suffix;
+            String outputFileName =uploadFolder+relativePath;
+            fos =new FileOutputStream(outputFileName);
+            //用于检查格式的流需要缓存下来
+            fos.write(buffer,0,size);
             while ((size =is.read(buffer))>0){
                 fos.write(buffer,0,size);
             }
