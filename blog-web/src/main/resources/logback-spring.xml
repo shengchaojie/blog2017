@@ -10,6 +10,7 @@
         </encoder>
     </appender>
 
+    <springProfile name ="prod">
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.path}/logback.log</file>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -78,20 +79,29 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
-<!--
-        <appender-ref ref="console"/>
--->
-        <appender-ref ref="file"/>
-        <appender-ref ref="file-error"/>
-    </root>
+    </springProfile>
 
-    <logger name="com.scj.dal.mapper" addtivity="true" level="info">
-        <appender-ref ref="file-error"/>
-        <appender-ref ref="file-mapper"/>
-    </logger>
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="console"/>
+        </root>
+    </springProfile>
 
-    <logger name="com.scj.service.asyntask" addtivity="true" level="info">
-        <appender-ref ref="music"/>
-    </logger>
+    <springProfile name="prd">
+        <root level="INFO">
+            <appender-ref ref="file"/>
+            <appender-ref ref="file-error"/>
+        </root>
+
+        <logger name="com.scj.dal.mapper" addtivity="true" level="info">
+            <appender-ref ref="file-error"/>
+            <appender-ref ref="file-mapper"/>
+        </logger>
+
+        <logger name="com.scj.service.asyntask" addtivity="true" level="info">
+            <appender-ref ref="music"/>
+        </logger>
+    </springProfile>
+
+
 </configuration>
