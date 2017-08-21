@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<configuration scan="true" scanPeriod="60 seconds" debug="true">
+<configuration scan="true" scanPeriod="60 seconds">
     <property name="appName" value="blog2017"/>
     <property name="log.path" value="/data/logs/${appName}"/>
     <contextName>${appName}</contextName>
