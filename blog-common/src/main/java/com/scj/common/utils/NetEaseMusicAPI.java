@@ -16,6 +16,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import sun.java2d.pipe.SpanIterator;
 
@@ -153,13 +154,23 @@ public class NetEaseMusicAPI {
         return "";
     }
 
+    public static String login(String username,String password){
+        String text ="{\"phone\": \""+username+"\", \"rememberLogin\": \"true\", \"password\": \""+password+"\"}";
+        String url = "https://music.163.com/weapi/login/cellphone";
+        List<NameValuePair> data =encryptedRequest(text);
+
+        return sendPostRequest(url,data);
+    }
+
     public static void main(String[] args) {
         /*String first_param = "{\"ids\":\"[" + "175991" + "]\",\"br\":128000,\"csrf_token\":\"\"}";
         String response = sendPostRequest("http://music.163.com/weapi/song/enhance/player/url?csrf_token=",encryptedRequest(first_param));
         JSONObject jsonObject= (JSONObject) JSONObject.parse(response);//data//url
         System.out.println(response);*/
 
-        System.out.println(getSongMp3Url("186001"));
+        //System.out.println(getSongMp3Url("186001"));
+        login("13388611621", EncryptUtil.encodeWithMD5("Scj@1992").toLowerCase());
+        //System.out.println(EncryptUtil.encodeWithMD5("how to use md5 in python hashlib?"));
     }
 
 }
