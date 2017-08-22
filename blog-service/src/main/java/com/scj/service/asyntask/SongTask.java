@@ -141,8 +141,8 @@ public class SongTask extends BaseTask{
             }
             String dataTId =countElement.get(0).attr("data-tid");
             //这个接口还能拿到评论信息
-            String response = NetEaseMusicAPI.sendPostRequest("http://music.163.com/weapi/v1/resource/comments/"+dataTId+"?csrf_token=",
-                    NetEaseMusicAPI.encryptedRequest(NetEaseMusicAPI.noLoginJson));
+            String response =new NetEaseMusicAPI().sendPostRequest("http://music.163.com/weapi/v1/resource/comments/"+dataTId+"?csrf_token=",
+                  new    NetEaseMusicAPI().encryptedRequest(NetEaseMusicAPI.noLoginJson),null);
             if(!StringUtils.isEmpty(response)){
                 JSONObject jsonObject= (JSONObject) JSONObject.parse(response);
                 if(jsonObject!=null&&jsonObject.containsKey("total")){
@@ -170,8 +170,8 @@ public class SongTask extends BaseTask{
                 return 0L;
             }
             String dataTId =countElement.get(0).attr("data-tid");
-            String response = NetEaseMusicAPI.sendPostRequest("http://music.163.com/weapi/v1/resource/comments/"+dataTId+"?csrf_token=",
-                    NetEaseMusicAPI.encryptedRequest(NetEaseMusicAPI.noLoginJson));
+            String response = new NetEaseMusicAPI().sendPostRequest("http://music.163.com/weapi/v1/resource/comments/"+dataTId+"?csrf_token=",
+                    new NetEaseMusicAPI().encryptedRequest(NetEaseMusicAPI.noLoginJson),null);
             if(!StringUtils.isEmpty(response)){
                 JSONObject jsonObject= (JSONObject) JSONObject.parse(response);
                 if(jsonObject!=null&&jsonObject.containsKey("total")){

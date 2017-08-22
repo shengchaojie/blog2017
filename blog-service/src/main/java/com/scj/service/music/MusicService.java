@@ -15,4 +15,6 @@ public interface MusicService {
     void crawlSingerAlbum();
 
     void crawlSongs();
+
+    void createPlayListBySingerName(String username,String password,String playlistName,String singerName);
 }

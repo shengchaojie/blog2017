@@ -47,4 +47,9 @@ public class NormalTest {
         LocalTime localTime= dtf.parseLocalTime("1988.04.10");
         System.out.println(localTime);
     }
+
+    @Test
+    public void testHexTransform(){
+        System.out.println(Integer.toHexString(-10&0xff));
+    }
 }

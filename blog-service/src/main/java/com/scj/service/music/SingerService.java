@@ -31,4 +31,6 @@ public interface SingerService {
 
     int updateCrawlTime(Long id, Date date);
 
+    List<SingerRO> getSingerByName(String name);
+
 }

@@ -90,4 +90,11 @@ public class SingerServiceImpl implements SingerService{
         singerRO.setCrawlTime(date);
         return singerMapper.updateByPrimaryKeySelective(singerRO);
     }
+
+    @Override
+    public List<SingerRO> getSingerByName(String name) {
+        Example example =new Example(SingerRO.class);
+        example.createCriteria().andEqualTo("singerName",name);
+        return singerMapper.selectByExample(example);
+    }
 }

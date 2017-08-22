@@ -30,6 +30,13 @@ public class SongServiceImpl implements SongService{
         return songMapper.selectByPrimaryKey(id);
     }
 
+    @Override
+    public List<SongRO> findBySingerId(Long singerId) {
+        Example example =new Example(SongRO.class);
+        example.createCriteria().andEqualTo("singerId",singerId);
+        return songMapper.selectByExample(example);
+    }
+
     @Cacheable(value = "music")
     @Override
     public List<SongRO> pageAll(int page, int pageSize) {

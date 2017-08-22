@@ -10,6 +10,8 @@ import java.util.List;
 public interface SongService {
     SongRO findById(Long id);
 
+    List<SongRO> findBySingerId(Long singerId);
+
     List<SongRO> pageAll(int page,int pageSize);
 
     int add(SongRO songRO);

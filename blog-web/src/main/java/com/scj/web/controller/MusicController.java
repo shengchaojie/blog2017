@@ -10,9 +10,11 @@ import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.SingerRO;
 import com.scj.dal.ro.music.SongRO;
 import com.scj.service.music.AlbumService;
+import com.scj.service.music.MusicService;
 import com.scj.service.music.SingerService;
 import com.scj.service.music.SongService;
 import com.scj.service.vo.music.SongVO;
+import com.scj.web.query.CreatePlaylistQuery;
 import com.scj.web.query.SongQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
@@ -30,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.jws.WebResult;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -56,6 +59,9 @@ public class MusicController {
 
     @Resource
     private AlbumService albumService;
+
+    @Resource
+    private MusicService musicService;
 
     @RequestMapping(value = "/page",method = RequestMethod.POST)
     @ResponseBody
@@ -90,8 +96,8 @@ public class MusicController {
     @RequestMapping(value = "/song/count",method = RequestMethod.GET)
     @ResponseBody
     public ResponseResult<Long> getSongCommentCount(@RequestParam("songId")Long songId){
-        String response = NetEaseMusicAPI.sendPostRequest("http://music.163.com/weapi/v1/resource/comments/R_SO_4_"+songId+"?csrf_token=",
-                NetEaseMusicAPI.encryptedRequest(NetEaseMusicAPI.noLoginJson));
+        String response = new NetEaseMusicAPI().sendPostRequest("http://music.163.com/weapi/v1/resource/comments/R_SO_4_"+songId+"?csrf_token=",
+              new NetEaseMusicAPI().encryptedRequest(NetEaseMusicAPI.noLoginJson),null);
         if(!StringUtils.isEmpty(response)){
             JSONObject jsonObject= (JSONObject) JSONObject.parse(response);
             if(jsonObject!=null&&jsonObject.containsKey("total")){
@@ -111,7 +117,7 @@ public class MusicController {
         if(songRO!=null&&!StringUtils.isEmpty(songRO.getSongDownloadUrl())){
             return new ResponseResult<>(StatusCode.OK,songRO.getSongDownloadUrl());
         }*/
-        String url =NetEaseMusicAPI.getSongMp3Url(songId.toString());
+        String url =new NetEaseMusicAPI().getSongMp3Url(songId.toString());
         if(!StringUtils.isEmpty(url)){
             /*songService.updateSongDownloadUrl(songId,url);*/
             return new ResponseResult<>(StatusCode.OK,url);
@@ -147,4 +153,10 @@ public class MusicController {
         return new ResponseResult<>(StatusCode.FAILED,"");
     }
 
+    @RequestMapping(value = "/createPlaylistBySingerName",method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseResult createPlaylistBySingerName(@RequestBody CreatePlaylistQuery createPlaylistQuery){
+        musicService.createPlayListBySingerName(createPlaylistQuery.getUsername(),createPlaylistQuery.getPassword(),createPlaylistQuery.getPlaylistName(),createPlaylistQuery.getSingerName());
+        return new ResponseResult<>(StatusCode.OK);
+    }
 }

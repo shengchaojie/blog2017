@@ -1,16 +1,19 @@
 package com.scj.service.music.impl;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.scj.common.enums.JobTypeEnum;
+import com.scj.common.exception.BusinessException;
+import com.scj.common.exception.StatusCode;
+import com.scj.common.utils.NetEaseMusicAPI;
 import com.scj.dal.ro.music.AlbumRO;
 import com.scj.dal.ro.music.CrawlInfoRO;
 import com.scj.dal.ro.music.SingerRO;
+import com.scj.dal.ro.music.SongRO;
 import com.scj.service.asyntask.*;
 import com.scj.service.event.CrawlEvent;
 import com.scj.service.event.CrawlEventType;
-import com.scj.service.music.AlbumService;
-import com.scj.service.music.CrawlInfoService;
-import com.scj.service.music.MusicService;
-import com.scj.service.music.SingerService;
+import com.scj.service.music.*;
 import com.scj.service.query.AlbumQuery;
 import com.scj.service.query.SingerQuery;
 import org.slf4j.Logger;
@@ -22,6 +25,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -51,6 +55,12 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
 
     @Resource
     private AlbumService albumService;
+
+    @Resource
+    private NetEaseMusicAPI netEaseMusicAPI;
+
+    @Resource
+    private SongService songService;
 
     @Value("${music.task.singer.thread}")
     private Integer singerTaskThreadSize;
@@ -190,6 +200,28 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
             SongTask songTask =applicationContext.getBean(SongTask.class,"SongTask"+i);
             songTask.doTask();
         }
+    }
+
+    @Override
+    public void createPlayListBySingerName(String username, String password, String playlistName, String singerName) {
+        Integer playListId = netEaseMusicAPI.createPlaylist(username,password,playlistName);
+        //根据歌手名字查找歌手
+        List<SingerRO> singerROList =singerService.getSingerByName(singerName);
+        if(CollectionUtils.isEmpty(singerROList)){
+            throw new BusinessException(StatusCode.NEM_UN_FOUND_SINGER);
+        }
+        SingerRO singerRO =singerROList.get(0);
+        List<SongRO> songROList = songService.findBySingerId(singerRO.getId());
+        if(CollectionUtils.isEmpty(songROList)){
+            return;
+        }
+        List<Integer> songIds = Lists.transform(songROList, new Function<SongRO, Integer>() {
+            @Override
+            public Integer apply(SongRO input) {
+                return input.getId().intValue();
+            }
+        });
+        netEaseMusicAPI.addSongToPlayList(username,password,songIds,playListId);
     }
 
     private boolean isNeedAllCrawled(CrawlInfoRO crawlInfoRO) {
