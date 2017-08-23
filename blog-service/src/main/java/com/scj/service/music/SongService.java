@@ -1,6 +1,7 @@
 package com.scj.service.music;
 
 import com.scj.dal.ro.music.SongRO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -12,13 +13,13 @@ public interface SongService {
 
     List<SongRO> findBySingerId(Long singerId);
 
-    List<SongRO> pageAll(int page,int pageSize);
+    List<SongRO> pageAll(String songName, String albumName, String singerName, int page, int pageSize);
 
     int add(SongRO songRO);
 
     int batchAdd(List<SongRO> songROList);
 
-    long count();
+    long count(String songName, String albumName, String singerName);
 
     int updateSongCommentCount(Long id,Long count);
 

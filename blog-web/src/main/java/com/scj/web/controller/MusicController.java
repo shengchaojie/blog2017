@@ -67,11 +67,11 @@ public class MusicController {
     @ResponseBody
     public ResponseResult<Page<SongVO>> getSongByPage(@RequestBody SongQuery songQuery) throws UnsupportedEncodingException {
         List<SongVO> result =new ArrayList<>();
-        long total =songService.count();
+        long total =songService.count(songQuery.getSongName(),songQuery.getAlbumName(),songQuery.getSingerName());
         if(total<=0){
             return new ResponseResult<>(StatusCode.OK,new Page<>(result,0L));
         }
-        List<SongRO> songROList =songService.pageAll(songQuery.getPage(),songQuery.getLimit());
+        List<SongRO> songROList =songService.pageAll(songQuery.getSongName(),songQuery.getAlbumName(),songQuery.getSingerName(),songQuery.getPage(),songQuery.getLimit());
         if(!CollectionUtils.isEmpty(songROList)){
             for(SongRO songRO:songROList){
                 SongVO songVO =new SongVO();

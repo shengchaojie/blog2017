@@ -39,14 +39,14 @@ public class SongServiceImpl implements SongService{
 
     @Cacheable(value = "music")
     @Override
-    public List<SongRO> pageAll(int page, int pageSize) {
+    public List<SongRO> pageAll(String songName, String albumName, String singerName,int page, int pageSize) {
         PageHelper.startPage(page,pageSize);
 
-        Example example =new Example(SongRO.class);
+        /*Example example =new Example(SongRO.class);
         example.setTableName("music_song");
-        example.setOrderByClause("comment_count desc");
+        example.setOrderByClause("comment_count desc");*/
 
-        return songMapper.selectByExample(example);
+        return songMapper.findByParam(songName,albumName,singerName);
     }
 
     @Override
@@ -60,8 +60,8 @@ public class SongServiceImpl implements SongService{
     }
 
     @Override
-    public long count() {
-        return songMapper.selectCount(null);
+    public long count(String songName, String albumName, String singerName) {
+        return songMapper.countByParam(songName,albumName,singerName);
     }
 
     @Override

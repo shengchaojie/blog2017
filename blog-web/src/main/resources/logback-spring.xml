@@ -82,9 +82,10 @@
     </springProfile>
 
     <springProfile name="dev">
-        <root level="INFO">
+        <root level="debug">
             <appender-ref ref="console"/>
         </root>
+
     </springProfile>
 
     <springProfile name="prd">
