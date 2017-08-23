@@ -21,32 +21,25 @@
   <select id="findByParam" resultMap="BaseResultMap" >
     select music.*
     from music_song music
-    <where>
-      <if test="songName != null and songName != ''">
-        AND music.song_name like concat('%',#{songName},'%')
-      </if>
-      <if test="albumName != null and albumName != ''">
-        AND music.album_id in (select id from music_album album where album.album_name LIKE concat('%',#{albumName},'%'))
-      </if>
-      <if test="singerName != null and singerName != ''">
-        AND music.singer_id in (select id from music_singer singer where singer.singer_name LIKE concat('%',#{singerName},'%'))
-      </if>
-    </where>
+    <include refid="where" />
     ORDER BY music.comment_count DESC
   </select>
   <select id="countByParam" resultType="java.lang.Long" >
     select count(*)
     from music_song music
+    <include refid="where" />
+  </select>
+  <sql id="where">
     <where>
       <if test="songName != null and songName != ''">
-        AND music.song_name like concat('%',#{songName},'%')
+        AND music.song_name  =#{songName}
       </if>
       <if test="albumName != null and albumName != ''">
-        AND music.album_id in (select id from music_album album where album.album_name LIKE concat('%',#{albumName},'%'))
+        AND music.album_id in (select id from music_album album where album.album_name = #{albumName})
       </if>
       <if test="singerName != null and singerName != ''">
-        AND music.singer_id in (select id from music_singer singer where singer.singer_name LIKE concat('%',#{singerName},'%'))
+        AND music.singer_id in (select id from music_singer singer where singer.singer_name = #{singerName})
       </if>
     </where>
-  </select>
+  </sql>
 </mapper>
