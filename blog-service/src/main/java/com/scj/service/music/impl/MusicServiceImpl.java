@@ -224,6 +224,12 @@ public class MusicServiceImpl implements MusicService,ApplicationContextAware{
         netEaseMusicAPI.addSongToPlayList(username,password,songIds,playListId);
     }
 
+    @Override
+    public void createPlayListBySongIds(String username, String password, String playlistName, List<Integer> songIds) {
+        Integer playListId = netEaseMusicAPI.createPlaylist(username,password,playlistName);
+        netEaseMusicAPI.addSongToPlayList(username,password,songIds,playListId);
+    }
+
     private boolean isNeedAllCrawled(CrawlInfoRO crawlInfoRO) {
         boolean isNeedAllCrawled =false;
         if(crawlInfoRO==null){

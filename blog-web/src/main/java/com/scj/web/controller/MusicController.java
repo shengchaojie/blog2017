@@ -153,10 +153,17 @@ public class MusicController {
         return new ResponseResult<>(StatusCode.FAILED,"");
     }
 
-    @RequestMapping(value = "/createPlaylistBySingerName",method = RequestMethod.POST)
+    @RequestMapping(value = "/createPLBySingerName",method = RequestMethod.POST)
     @ResponseBody
     public ResponseResult createPlaylistBySingerName(@RequestBody CreatePlaylistQuery createPlaylistQuery){
         musicService.createPlayListBySingerName(createPlaylistQuery.getUsername(),createPlaylistQuery.getPassword(),createPlaylistQuery.getPlaylistName(),createPlaylistQuery.getSingerName());
+        return new ResponseResult<>(StatusCode.OK);
+    }
+
+    @RequestMapping(value = "/createPLBySongIds",method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseResult createPLBySongIds(@RequestBody CreatePlaylistQuery createPlaylistQuery){
+        musicService.createPlayListBySongIds(createPlaylistQuery.getUsername(),createPlaylistQuery.getPassword(),createPlaylistQuery.getPlaylistName(),createPlaylistQuery.getSongIds());
         return new ResponseResult<>(StatusCode.OK);
     }
 }

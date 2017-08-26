@@ -16,12 +16,14 @@ import java.util.HashMap;
  * 用户名,对应的cookie
  * 直接做内存缓存其实也行
  * 定期起线程做备份和清除硬盘缓存也行
+ *
+ * 这个持久化不能用啊，如果用户第二次密码输入错误，如果还能从这里拿，那太危险了
+ * 后期做自动签到功能的时候可以用这个
  * Created by shengchaojie on 2017/8/22.
  */
-@Component
 public class NetEaseMusicCookieStore extends HashMap<String,BasicCookieStore>{
 
-    private static final String CACHE_DIRECTORY ="d:/data/neteasemusic/";
+    private static final String CACHE_DIRECTORY ="/data/neteasemusic/";
 
     private static final String CACHE_FILENAME ="cookie.cache";
 

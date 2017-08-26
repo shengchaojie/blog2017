@@ -37,10 +37,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -49,8 +46,20 @@ import java.util.regex.Pattern;
 @Component
 public class NetEaseMusicAPI {
 
-    @Resource
-    private NetEaseMusicCookieStore netEaseMusicCookieStore;
+    //@Resource
+    //private NetEaseMusicCookieStore netEaseMusicCookieStore;
+
+    /**
+     * 安全性考虑
+     *每次请求cookie可以缓存起来，一旦不是同一次请求就需要重新拿cookie
+     */
+    private ThreadLocal<Map<String,CookieStore>> userCookieTL =new ThreadLocal<Map<String,CookieStore>>(){
+        @Override
+        protected Map<String,CookieStore> initialValue() {
+            return new HashMap<>();
+        }
+    };
+
 
     private final  String modulus = "00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7" +
             "b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280" +
@@ -234,7 +243,7 @@ public class NetEaseMusicAPI {
         }else{
             throw new BusinessException(StatusCode.NEM_UN_KNOW_ERROR);
         }
-        netEaseMusicCookieStore.put(username,cookieStore);
+        userCookieTL.get().put(username,cookieStore);
     }
 
     /**
@@ -302,10 +311,10 @@ public class NetEaseMusicAPI {
     }
 
     private CookieStore getUserCookieStore(String username, String password) {
-        if(!netEaseMusicCookieStore.containsKey(username)){
+        if(!userCookieTL.get().containsKey(username)){
             login(username,password);
         }
-        CookieStore cookieStore =netEaseMusicCookieStore.get(username);
+        CookieStore cookieStore =userCookieTL.get().get(username);
         if(cookieStore ==null){
             throw new BusinessException(StatusCode.USERNAME_PASSWORD_WRONG);
         }

@@ -1,5 +1,7 @@
 package com.scj.web.query;
 
+import java.util.List;
+
 /**
  * Created by shengchaojie on 2017/8/22.
  */
@@ -9,6 +11,7 @@ public class CreatePlaylistQuery {
     private String password;
     private String playlistName;
     private String singerName;
+    private List<Integer> songIds;
 
     public String getUsername() {
         return username;
@@ -40,5 +43,13 @@ public class CreatePlaylistQuery {
 
     public void setSingerName(String singerName) {
         this.singerName = singerName;
+    }
+
+    public List<Integer> getSongIds() {
+        return songIds;
+    }
+
+    public void setSongIds(List<Integer> songIds) {
+        this.songIds = songIds;
     }
 }
