@@ -1,8 +1,12 @@
 # blog2017
-这是盛超杰的blog，想到什么做什么
-前端：react+redux+antd+webpack  
-后端：springboot+mybatis+tkmybatis
-##开发计划
-2017-06-24 把爬虫完善一下，然后独立出去，能收获星星吗
+这是盛超杰的blog，想到什么做什么  
+前端：react+redux+antd+webpack   
+后端：springboot+mybatis+tkmybatis  
 
-2017-06-28 可以对歌曲信息进行分析，用es，增加查询效率？？
+## 目前实现的功能
+1. 网易云音乐爬虫，并且可以选择歌曲创建歌单同步到自己网易云账号
+2. 为自己的博客做的一个图床
+
+## 待实现功能
+1. 用户登陆模块
+2. ES优化搜索
